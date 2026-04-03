@@ -20,6 +20,15 @@ module.exports = {
       zalo: {
         type: Sequelize.STRING
       },
+      roleId: {
+        type: Sequelize.STRING,
+        references: {
+          model: 'Roles',
+          key: 'id'
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'SET NULL'
+      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE
