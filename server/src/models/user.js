@@ -5,30 +5,23 @@ module.exports = (sequelize, DataTypes) => {
   class User extends Model {
     static associate(models) {
       User.belongsTo(models.Role, {
-        foreignKey: "roleId",
-        as: "role",
-      });
-
-      User.hasMany(models.Post, {
-        foreignKey: "userId",
-        as: "posts",
+        foreignKey: 'roleId',
+        as: 'role',
       });
     }
   }
-
-  User.init(
-    {
+  User.init({
       name: DataTypes.STRING,
-      password: DataTypes.STRING,
       phone: DataTypes.STRING,
+      email: DataTypes.STRING,
+      password: DataTypes.STRING,
       zalo: DataTypes.STRING,
       roleId: DataTypes.STRING,
-    },
-    {
-      sequelize,
-      modelName: "User",
-    }
-  );
-
+      resetToken: DataTypes.STRING,
+      resetTokenExpired: DataTypes.BIGINT,
+  }, {
+    sequelize,
+    modelName: 'User',
+  });
   return User;
 };
