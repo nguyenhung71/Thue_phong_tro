@@ -1,33 +1,37 @@
-"use strict";
-const { Model } = require("sequelize");
+'use strict';
+const { Model } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
   class Post extends Model {
-    /**
-     * Helper method for defining associations.
-     * This method is not a part of Sequelize lifecycle.
-     * The `models/index` file will call this method automatically.
-     */
     static associate(models) {
-      // define association here
+      Post.belongsTo(models.User, { foreignKey: 'userId', as: 'user' });
+      Post.belongsTo(models.Label, { foreignKey: 'labelCode', as: 'label' });
+      Post.belongsTo(models.Category, { foreignKey: 'categoryCode', as: 'category' });
+      Post.belongsTo(models.Attribute, { foreignKey: 'attributeId', as: 'attribute' });
+      Post.belongsTo(models.Overview, { foreignKey: 'overviewId', as: 'overview' });
+      Post.belongsTo(models.Images, { foreignKey: 'imagesId', as: 'images' });
     }
   }
-  Post.init(
-    {
-      title: DataTypes.STRING,
-      star: DataTypes.STRING,
-      labelCode: DataTypes.STRING,
-      address: DataTypes.STRING,
-      attributeId: DataTypes.STRING,
-      categoryCode: DataTypes.STRING,
-      description: DataTypes.TEXT,
-      userId: DataTypes.STRING,
-      overviewId: DataTypes.TEXT,
-      imagesId: DataTypes.STRING,
+  Post.init({
+    id: {
+      type: DataTypes.STRING,
+      primaryKey: true
     },
-    {
-      sequelize,
-      modelName: "Post",
+    title: DataTypes.STRING,
+    star: {
+      type: DataTypes.STRING,
+      defaultValue: '0'
     },
-  );
+    labelCode: DataTypes.STRING,
+    address: DataTypes.STRING,
+    attributeId: DataTypes.STRING,
+    categoryCode: DataTypes.STRING,
+    description: DataTypes.TEXT,
+    userId: DataTypes.STRING,
+    overviewId: DataTypes.TEXT,
+    imagesId: DataTypes.STRING,
+  }, {
+    sequelize,
+    modelName: 'Post',
+  });
   return Post;
 };

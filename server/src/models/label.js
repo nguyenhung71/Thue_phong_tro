@@ -1,19 +1,16 @@
 'use strict';
-const {
-  Model
-} = require('sequelize');
+const { Model } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
   class Label extends Model {
-    /**
-     * Helper method for defining associations.
-     * This method is not a part of Sequelize lifecycle.
-     * The `models/index` file will call this method automatically.
-     */
     static associate(models) {
-      // define association here
+      Label.hasMany(models.Post, { foreignKey: 'labelCode', as: 'posts' });
     }
   }
   Label.init({
+    id: {
+      type: DataTypes.STRING,
+      primaryKey: true
+    },
     code: DataTypes.STRING,
     value: DataTypes.STRING,
   }, {
