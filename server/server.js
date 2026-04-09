@@ -1,26 +1,30 @@
-  import express from 'express'
-  require('dotenv').config()
-  import cors from 'cors'
-  import initRoutes from './src/routes'
-  import connectDatabase from './src/config/connectDatabase'
+import 'dotenv/config'  
+import express from 'express'
+import cors from 'cors'
+import initRoutes from './src/routes'
+import sequelize from './src/config/connectDatabase'
 
-  const app = express()
+const app = express()
 
-  app.use(cors({
-    origin: process.env.CLIENT_URL,
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  }))
+app.use(cors({
+  origin: process.env.CLIENT_URL,
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+}))
 
-  app.use(express.json())
-  app.use(express.urlencoded({ extended: true }))
+app.use(express.json())
+app.use(express.urlencoded({ extended: true }))
 
-  initRoutes(app)
-  connectDatabase()
+initRoutes(app)
 
-  const port = process.env.PORT || 8888
+// 🔥 kết nối DB đúng cách
+sequelize.authenticate()
+  .then(() => console.log("Kết nối DB thành công"))
+  .catch(err => console.error("Lỗi DB:", err))
 
-  app.listen(port, () => {
-    console.log(`Server is running on port ${port}`)
-  }).on('error', (error) => {
-    console.error('Failed to start server:', error.message)
-  })
+const port = process.env.PORT || 8888
+
+app.listen(port, () => {
+  console.log(`Máy chủ đang chạy ở ${port}`)
+}).on('error', (error) => {
+  console.error('Khởi động máy chủ thất bại:', error.message)
+})
