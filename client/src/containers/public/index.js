@@ -1,0 +1,10 @@
+  export { default as Login } from "./Login";
+  export { default as Home } from "./Home";
+  export { default as Header } from "./Header";
+  export { default as Navigation } from "./Navigation";
+  export { default as ForgotPassword } from "./ForgotPassword";
+  export { default as ResetPassword } from "./ResetPassword";
+  export { default as wholeHouse } from "./wholeHouse";
+  export { default as apartment } from "./apartment";
+  export { default as servicedApartments } from "./servicedApartments";
+  export { default as miniApartment } from "./miniApartment";
