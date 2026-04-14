@@ -2,6 +2,7 @@ import express from 'express'
 import verifyToken from '../middlewares/verifyToken'
 import verifyRole from '../middlewares/verifyRole'
 import * as postController from '../controllers/post'
+import uploadImage from '../middlewares/uploadImage'
 
 const router = express.Router()
 
@@ -19,8 +20,7 @@ router.put('/admin/update/:id', verifyRole('ADMIN'), postController.updatePost)
 
 // LANDLORD
 router.get('/my-posts', verifyRole('LANDLORD', 'ADMIN'), postController.getPostsByUser)
-router.post('/create', verifyRole('LANDLORD', 'ADMIN'), postController.createPost)
 router.put('/update/:id', verifyRole('LANDLORD', 'ADMIN'), postController.updatePost)
 router.delete('/delete/:id', verifyRole('LANDLORD', 'ADMIN'), postController.deletePost)
-
+router.post('/create', verifyRole('LANDLORD', 'ADMIN'), uploadImage.array('images', 10), postController.createPost)
 export default router

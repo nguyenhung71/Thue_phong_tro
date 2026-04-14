@@ -34,15 +34,20 @@ export const getPostsByUser = async (req, res) => {
 
 // LANDLORD - tạo bài đăng
 export const createPost = async (req, res) => {
-  const { id } = req.user
+  const { id: userId } = req.user
   try {
-    const { title, labelCode, address, attributeId, categoryCode, description, overviewId, imagesId } = req.body
+    const { title, address, province, district, categoryCode, description, price, acreage } = req.body
 
-    if (!title || !address || !categoryCode || !description) {
+    if (!title || !address || !categoryCode || !description || !price || !acreage) {
       return res.status(400).json({ err: 1, msg: 'Thiếu dữ liệu đầu vào.' })
     }
 
-    const response = await services.createPost({ ...req.body, userId: id })
+    const response = await services.createPost({
+      title, address, province, district,
+      categoryCode, description, price, acreage,
+      userId,
+      files: req.files
+    })
     return res.status(200).json(response)
   } catch (error) {
     return res.status(500).json({ err: -1, msg: 'Failed at post controller: ' + error })
