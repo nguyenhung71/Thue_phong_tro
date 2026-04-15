@@ -1,21 +1,59 @@
-import { Routes, Route } from "react-router-dom";
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { Route, Routes } from "react-router-dom";
 import {
-  Home,
-  Login,
+  DetailPost,
   ForgotPassword,
+  Home,
+  Homepage,
+  Login,
+  Rental,
   ResetPassword,
+  SearchDetail,
 } from "./containers/public";
-import { path } from "./ultils/contant";
+import { CreatePost, System } from "./containers/system";
+import * as actions from "./store/actions";
+import { path } from "./ultils/constant";
 import { categoryRoutes } from "./ultils/navigation";
 
 function App() {
+  const dispatch = useDispatch();
+  const { isLoggedIn } = useSelector((state) => state.auth);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (isLoggedIn) {
+        dispatch(actions.getCurrent());
+      }
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [dispatch, isLoggedIn]);
+
+  useEffect(() => {
+    dispatch(actions.getPrices());
+    dispatch(actions.getAreas());
+    dispatch(actions.getProvinces());
+  }, [dispatch]);
+
   return (
-    <div className="h-screen w-screen bg-primary">
+    <div className="bg-primary">
       <Routes>
         <Route path={path.HOME} element={<Home />}>
+          <Route path="*" element={<Homepage />} />
           <Route path={path.LOGIN} element={<Login />} />
           <Route path={path.FORGOT_PASSWORD} element={<ForgotPassword />} />
           <Route path={path.RESET_PASSWORD} element={<ResetPassword />} />
+          <Route path={path.CHO_THUE_CAN_HO} element={<Rental />} />
+          <Route path={path.CHO_THUE_MAT_BANG} element={<Rental />} />
+          <Route path={path.CHO_THUE_PHONG_TRO} element={<Rental />} />
+          <Route path={path.NHA_CHO_THUE} element={<Rental />} />
+          <Route path={path.SEARCH} element={<SearchDetail />} />
+          <Route
+            path={path.DETAL_POST__TITLE__POSTID}
+            element={<DetailPost />}
+          />
+          <Route path="chi-tiet/*" element={<DetailPost />} />
           {categoryRoutes.map((item) => {
             const Component = item.element;
             return (
@@ -26,6 +64,9 @@ function App() {
               />
             );
           })}
+        </Route>
+        <Route path={path.SYSTEM} element={<System />}>
+          <Route path={path.CREATE_POST} element={<CreatePost />} />
         </Route>
       </Routes>
     </div>

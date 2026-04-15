@@ -1,5 +1,5 @@
+import { apiLogin, apiRegister } from "../../services/auth";
 import actionTypes from "./actionTypes";
-import { apiRegister, apiLogin } from "../../services/auth";
 
 export const register = (payload) => async (dispatch) => {
   try {
@@ -13,7 +13,7 @@ export const register = (payload) => async (dispatch) => {
     } else {
       dispatch({
         type: actionTypes.REGISTER_FAIL,
-        data: response?.data?.msg || "Đăng ký thất bại",
+        data: response?.data?.msg || "Dang ky that bai",
       });
     }
 
@@ -21,7 +21,7 @@ export const register = (payload) => async (dispatch) => {
   } catch (error) {
     dispatch({
       type: actionTypes.REGISTER_FAIL,
-      data: "Có lỗi xảy ra, vui lòng thử lại",
+      data: "Co loi xay ra, vui long thu lai",
     });
     return null;
   }
@@ -43,7 +43,7 @@ export const login = (payload) => async (dispatch) => {
     } else {
       dispatch({
         type: actionTypes.LOGIN_FAIL,
-        data: response?.data?.msg || "Đăng nhập thất bại",
+        data: response?.data?.msg || "Dang nhap that bai",
       });
     }
 
@@ -51,7 +51,7 @@ export const login = (payload) => async (dispatch) => {
   } catch (error) {
     dispatch({
       type: actionTypes.LOGIN_FAIL,
-      data: "Có lỗi xảy ra, vui lòng thử lại",
+      data: "Co loi xay ra, vui long thu lai",
     });
     return null;
   }

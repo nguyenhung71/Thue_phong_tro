@@ -1,31 +1,34 @@
 import axios from "axios";
 
 const instance = axios.create({
-    baseURL: process.env.REACT_APP_SERVER_URL
-})
+  baseURL: process.env.REACT_APP_SERVER_URL,
+});
 
-//Add a request interceptor
-instance.interceptors.request.use(function (config) {
-    // Do something before request is sent
-    // Gắn token vào header
+instance.interceptors.request.use(
+  function (config) {
+    const persistedAuth = window.localStorage.getItem("persist:auth");
+    const token =
+      persistedAuth && JSON.parse(persistedAuth)?.token?.slice(1, -1);
+
+    config.headers = {
+      ...config.headers,
+      authorization: token ? `Bearer ${token}` : null,
+    };
+
     return config;
-}, function (error) {
-    // Do something with request error
+  },
+  function (error) {
     return Promise.reject(error);
-});
+  }
+);
 
-// Add a response interceptor
-instance.interceptors.response.use(function (response) {
-    // Refresh token
+instance.interceptors.response.use(
+  function (response) {
     return response;
-}, function (error) {
-    // Any status codes that falls outside the range of 2xx cause this function to trigger
-    // Do something with response error
+  },
+  function (error) {
     return Promise.reject(error);
-
-});
-
-
-
+  }
+);
 
 export default instance;
