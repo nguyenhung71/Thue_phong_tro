@@ -4,14 +4,13 @@ import { Province, ItemSidebar, RelatedPost } from '../../components'
 import { List, Pagination } from './index'
 import { useSelector } from 'react-redux'
 
-
 const Homepage = () => {
     const { categories, prices, areas } = useSelector(state => state.app)
 
     return (
-        <div className='w-full flex flex-col gap-3' >
+        <div className='w-full flex flex-col gap-3'>
             <div>
-                <h1 className='text-[28px] font-bold' >{text.HOME_TITLE}</h1>
+                <h1 className='text-[28px] font-bold'>{text.HOME_TITLE}</h1>
                 <p className='text-base text-gray-700'>{text.HOME_DESCRIPTION}</p>
             </div>
             <Province />
@@ -27,7 +26,6 @@ const Homepage = () => {
                     <RelatedPost />
                 </div>
             </div>
-
         </div>
     )
 }

@@ -1,8 +1,8 @@
 const { Sequelize } = require("sequelize");
 
 // Option 3: Passing parameters separately (other dialects)
-const sequelize = new Sequelize("phongtro", "root", null, {
-  host: "localhost",
+const sequelize = new Sequelize("phongtro", "root", "", {
+  host: "127.0.0.1",
   dialect: "mysql", // 'mysql' | 'postgres' | 'sqlite' | 'mariadb' | 'mssql' | 'db2' | 'snowflake' | 'oracle'
   logging: false,
 });

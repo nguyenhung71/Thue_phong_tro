@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 import {
   DetailPost,
   ForgotPassword,
@@ -11,7 +11,7 @@ import {
   ResetPassword,
   SearchDetail,
 } from "./containers/public";
-import { CreatePost, System } from "./containers/system";
+import { AccountInfo, ContactInfo, CreatePost, ManagePost, System } from "./containers/system";
 import * as actions from "./store/actions";
 import { path } from "./ultils/constant";
 import { categoryRoutes } from "./ultils/navigation";
@@ -31,6 +31,7 @@ function App() {
   }, [dispatch, isLoggedIn]);
 
   useEffect(() => {
+    dispatch(actions.getCategories());
     dispatch(actions.getPrices());
     dispatch(actions.getAreas());
     dispatch(actions.getProvinces());
@@ -49,24 +50,21 @@ function App() {
           <Route path={path.CHO_THUE_PHONG_TRO} element={<Rental />} />
           <Route path={path.NHA_CHO_THUE} element={<Rental />} />
           <Route path={path.SEARCH} element={<SearchDetail />} />
-          <Route
-            path={path.DETAL_POST__TITLE__POSTID}
-            element={<DetailPost />}
-          />
+          <Route path={path.DETAL_POST__TITLE__POSTID} element={<DetailPost />} />
           <Route path="chi-tiet/*" element={<DetailPost />} />
           {categoryRoutes.map((item) => {
             const Component = item.element;
-            return (
-              <Route
-                key={item.path}
-                path={item.path}
-                element={<Component />}
-              />
-            );
+            return <Route key={item.path} path={item.path} element={<Component />} />;
           })}
         </Route>
         <Route path={path.SYSTEM} element={<System />}>
+          <Route index element={<Navigate to={path.CREATE_POST} replace />} />
           <Route path={path.CREATE_POST} element={<CreatePost />} />
+          <Route path={path.MANAGE_POSTS} element={<ManagePost />} />
+          <Route path={path.ACCOUNT_INFO} element={<AccountInfo />} />
+          <Route path={path.EDIT_ACCOUNT} element={<AccountInfo />} />
+          <Route path={path.EDIT_POST} element={<CreatePost />} />
+          <Route path={path.CONTACT} element={<ContactInfo />} />
         </Route>
       </Routes>
     </div>

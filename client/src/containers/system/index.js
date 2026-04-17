@@ -1,4 +1,7 @@
 export { default as System } from './System'
 export { default as CreatePost } from './CreatePost'
+export { default as ManagePost } from './ManagePost'
+export { default as AccountInfo } from './AccountInfo'
+export { default as ContactInfo } from './ContactInfo'
 export { default as Header } from './Header'
 export { default as Sidebar } from './Sidebar'
