@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { Button, InputForm } from "../../components";
 import { apiResetPassword } from "../../services/auth";
 import { logout } from "../../store/actions/auth";
@@ -15,7 +15,6 @@ const getPasswordError = (password) => {
 };
 
 const ResetPassword = () => {
-  const navigate = useNavigate();
   const dispatch = useDispatch();
   const [searchParams] = useSearchParams();
   const email = searchParams.get("email") || "";
@@ -66,7 +65,7 @@ const ResetPassword = () => {
 
       setMsg(response?.data?.msg || "");
       setIsError(response?.data?.err !== 0);
-      if (response?.data?.err === 0) setTimeout(() => navigate("/login"), 1000);
+      if (response?.data?.err === 0) setTimeout(() => window.location.assign("/login"), 1000);
     } catch (error) {
       setIsError(true);
       setMsg("Có lỗi xảy ra, vui lòng thử lại");
@@ -85,7 +84,7 @@ const ResetPassword = () => {
       </div>
 
       <div className="mt-7">
-        <small onClick={() => navigate("/login")} className="text-blue-600 hover:text-orange-500 cursor-pointer">
+        <small onClick={() => window.location.assign("/login")} className="text-blue-600 hover:text-orange-500 cursor-pointer">
           Quay lại đăng nhập
         </small>
       </div>

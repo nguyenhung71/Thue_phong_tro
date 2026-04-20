@@ -11,6 +11,10 @@ module.exports = (sequelize, DataTypes) => {
     }
   }
   User.init({
+      id: {
+        type: DataTypes.STRING,
+        primaryKey: true,
+      },
       name: DataTypes.STRING,
       phone: DataTypes.STRING,
       email: DataTypes.STRING,
@@ -18,8 +22,6 @@ module.exports = (sequelize, DataTypes) => {
       zalo: DataTypes.STRING,
       avatar: DataTypes.TEXT,
       roleId: DataTypes.STRING,
-      resetToken: DataTypes.STRING,
-      resetTokenExpired: DataTypes.BIGINT,
   }, {
     sequelize,
     modelName: 'User',

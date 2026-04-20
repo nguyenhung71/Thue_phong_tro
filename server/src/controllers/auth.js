@@ -91,7 +91,7 @@ export const sendOtp = async (req, res) => {
 
   try {
     const user = await sequelize.query(
-      "SELECT id, email FROM users WHERE email = ? LIMIT 1",
+      "SELECT id, email FROM Users WHERE email = ? LIMIT 1",
       {
         replacements: [email],
         type: QueryTypes.SELECT,
@@ -256,7 +256,7 @@ export const resetPassword = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-    await sequelize.query("UPDATE users SET password = ? WHERE id = ?", {
+    await sequelize.query("UPDATE Users SET password = ? WHERE id = ?", {
       replacements: [hashedPassword, record.user_id],
       type: QueryTypes.UPDATE,
     });

@@ -21,13 +21,9 @@ function App() {
   const { isLoggedIn } = useSelector((state) => state.auth);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      if (isLoggedIn) {
-        dispatch(actions.getCurrent());
-      }
-    }, 1000);
-
-    return () => clearTimeout(timer);
+    if (isLoggedIn) {
+      dispatch(actions.getCurrent());
+    }
   }, [dispatch, isLoggedIn]);
 
   useEffect(() => {
@@ -40,8 +36,17 @@ function App() {
   return (
     <div className="bg-primary">
       <Routes>
+        <Route path={path.SYSTEM} element={<System />}>
+          <Route index element={<Navigate to={path.CREATE_POST} replace />} />
+          <Route path={path.CREATE_POST} element={<CreatePost />} />
+          <Route path={path.MANAGE_POSTS} element={<ManagePost />} />
+          <Route path={path.ACCOUNT_INFO} element={<AccountInfo />} />
+          <Route path={path.EDIT_ACCOUNT} element={<AccountInfo />} />
+          <Route path={path.EDIT_POST} element={<CreatePost />} />
+          <Route path={path.CONTACT} element={<ContactInfo />} />
+        </Route>
         <Route path={path.HOME} element={<Home />}>
-          <Route path="*" element={<Homepage />} />
+          <Route index element={<Homepage />} />
           <Route path={path.LOGIN} element={<Login />} />
           <Route path={path.FORGOT_PASSWORD} element={<ForgotPassword />} />
           <Route path={path.RESET_PASSWORD} element={<ResetPassword />} />
@@ -56,15 +61,7 @@ function App() {
             const Component = item.element;
             return <Route key={item.path} path={item.path} element={<Component />} />;
           })}
-        </Route>
-        <Route path={path.SYSTEM} element={<System />}>
-          <Route index element={<Navigate to={path.CREATE_POST} replace />} />
-          <Route path={path.CREATE_POST} element={<CreatePost />} />
-          <Route path={path.MANAGE_POSTS} element={<ManagePost />} />
-          <Route path={path.ACCOUNT_INFO} element={<AccountInfo />} />
-          <Route path={path.EDIT_ACCOUNT} element={<AccountInfo />} />
-          <Route path={path.EDIT_POST} element={<CreatePost />} />
-          <Route path={path.CONTACT} element={<ContactInfo />} />
+          <Route path="*" element={<Homepage />} />
         </Route>
       </Routes>
     </div>

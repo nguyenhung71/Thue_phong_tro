@@ -1,12 +1,11 @@
 import React, { memo } from 'react'
-import { createSearchParams, NavLink, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
+import { createSearchParams, useLocation, useSearchParams } from 'react-router-dom'
 import icons from '../ultils/icons'
 
 const { GrNext } = icons
 
 const ItemSidebar = ({ title, content = [], isDouble, type }) => {
   const location = useLocation()
-  const navigate = useNavigate()
   const [searchParams] = useSearchParams()
 
   const pairs = []
@@ -40,7 +39,7 @@ const ItemSidebar = ({ title, content = [], isDouble, type }) => {
     })
     nextParams.page = 1
 
-    navigate({ pathname: location.pathname, search: createSearchParams(nextParams).toString() })
+    window.location.assign(`${location.pathname}?${createSearchParams(nextParams).toString()}`)
   }
 
   return (
@@ -49,14 +48,14 @@ const ItemSidebar = ({ title, content = [], isDouble, type }) => {
       {!isDouble && (
         <div className='flex flex-col gap-2'>
           {content.map((item) => (
-            <NavLink
-              to={`/${item.routePath || item.code}`}
+            <a
+              href={`/${item.routePath || item.code}`}
               key={item.id || item.code}
               className='flex gap-2 items-center cursor-pointer hover:text-orange-600 border-b border-gray-200 pb-1 border-dashed'
             >
               <GrNext size={10} color='#ccc' />
               <p>{item.value}</p>
-            </NavLink>
+            </a>
           ))}
         </div>
       )}

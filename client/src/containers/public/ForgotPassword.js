@@ -1,12 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
-import { useNavigate } from "react-router-dom";
 import { Button, InputForm } from "../../components";
 import { apiForgotPassword, apiVerifyOtp } from "../../services/auth";
 import { logout } from "../../store/actions/auth";
 
 const ForgotPassword = () => {
-  const navigate = useNavigate();
   const dispatch = useDispatch();
   const [step, setStep] = useState(1);
   const [invalidFields, setInvalidFields] = useState([]);
@@ -60,7 +58,7 @@ const ForgotPassword = () => {
       setMsg(response?.data?.msg || "");
       setIsError(response?.data?.err !== 0);
       if (response?.data?.err === 0) {
-        navigate(`/reset-password?email=${encodeURIComponent(payload.email)}&otp=${encodeURIComponent(payload.otp)}`);
+        window.location.assign(`/reset-password?email=${encodeURIComponent(payload.email)}&otp=${encodeURIComponent(payload.otp)}`);
       }
     } catch (error) {
       setIsError(true);
@@ -92,7 +90,7 @@ const ForgotPassword = () => {
       </div>
 
       <div className="mt-7">
-        <small onClick={() => navigate("/login")} className="text-blue-600 hover:text-orange-500 cursor-pointer">
+        <small onClick={() => window.location.assign("/login")} className="text-blue-600 hover:text-orange-500 cursor-pointer">
           Quay lại đăng nhập
         </small>
       </div>

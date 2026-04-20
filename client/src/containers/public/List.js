@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { createSearchParams, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
+import { createSearchParams, useLocation, useSearchParams } from 'react-router-dom'
 import { Button, Item } from '../../components'
 import { getPostsLimit } from '../../store/actions/post'
 
@@ -16,24 +16,8 @@ const parseDescription = (value) => {
   }
 }
 
-const parseImages = (value) => {
-  if (!value) return []
-  if (Array.isArray(value)) return value
-  if (typeof value !== 'string') return []
-  try {
-    const parsed = JSON.parse(value)
-    return Array.isArray(parsed) ? parsed : []
-  } catch {
-    return value
-      .split(',')
-      .map((item) => item.trim())
-      .filter((item) => /^https?:\/\//i.test(item) && /\.(jpg|jpeg|png|webp|gif)(\?|$)/i.test(item))
-  }
-}
-
 const List = ({ categoryId, categoryCode }) => {
   const dispatch = useDispatch()
-  const navigate = useNavigate()
   const location = useLocation()
   const [searchParams] = useSearchParams()
   const { posts } = useSelector((state) => state.post)
@@ -52,7 +36,7 @@ const List = ({ categoryId, categoryCode }) => {
 
   const handleSort = (sort) => {
     const nextParams = { ...queryObject, sort, page: 1 }
-    navigate({ pathname: location.pathname, search: createSearchParams(nextParams).toString() })
+    window.location.assign(`${location.pathname}?${createSearchParams(nextParams).toString()}`)
   }
 
   return (
@@ -68,7 +52,7 @@ const List = ({ categoryId, categoryCode }) => {
       </div>
       <div className='items'>
         {posts?.length > 0 && posts.map((item) => (
-          <Item key={item?.id} address={item?.address} attributes={item?.attributes} description={parseDescription(item?.description)} images={parseImages(item?.images?.image)} star={+item?.star} title={item?.title} user={item?.user} id={item?.id} />
+          <Item key={item?.id} address={item?.address} attributes={item?.attributes} description={parseDescription(item?.description)} images={item?.images?.image} star={+item?.star} title={item?.title} user={item?.user} id={item?.id} />
         ))}
         {(!posts || posts.length === 0) && <p className='py-8 text-gray-500'>Chưa có bài đăng phù hợp.</p>}
       </div>

@@ -4,7 +4,6 @@ module.exports = (sequelize, DataTypes) => {
   class Post extends Model {
     static associate(models) {
       Post.belongsTo(models.User, { foreignKey: 'userId', as: 'user' });
-      Post.belongsTo(models.Label, { foreignKey: 'labelCode', as: 'label' });
       Post.belongsTo(models.Category, { foreignKey: 'categoryCode', as: 'category' });
       Post.belongsTo(models.Attribute, { foreignKey: 'attributeId', as: 'attribute' });
       Post.belongsTo(models.Overview, { foreignKey: 'overviewId', as: 'overview' });
@@ -17,7 +16,6 @@ module.exports = (sequelize, DataTypes) => {
       primaryKey: true
     },
     title: DataTypes.STRING,
-    labelCode: DataTypes.STRING,
     address: DataTypes.STRING,
     attributeId: DataTypes.STRING,
     categoryCode: DataTypes.STRING,

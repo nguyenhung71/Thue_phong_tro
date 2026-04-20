@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { Button, InputForm } from "../../components";
 import { clearAuthMessage, login, register } from "../../store/actions/auth";
 
@@ -15,10 +15,14 @@ const getPasswordError = (password) => {
 
 const Login = () => {
   const location = useLocation();
-  const navigate = useNavigate();
   const dispatch = useDispatch();
   const { isLoggedIn, msg } = useSelector((state) => state.auth);
-  const [isRegister, setIsRegister] = useState(location?.state?.flag || false);
+  const registerMode = useMemo(() => {
+    const search = new URLSearchParams(location.search);
+    if (typeof location?.state?.flag === "boolean") return location.state.flag;
+    return search.get("mode") === "register";
+  }, [location.search, location.state]);
+  const [isRegister, setIsRegister] = useState(registerMode);
   const [invalidFields, setInvalidFields] = useState([]);
   const [payload, setPayload] = useState({
     name: "",
@@ -30,12 +34,12 @@ const Login = () => {
   });
 
   useEffect(() => {
-    setIsRegister(location?.state?.flag || false);
-  }, [location?.state?.flag]);
+    setIsRegister(registerMode);
+  }, [registerMode]);
 
   useEffect(() => {
-    if (isLoggedIn) navigate("/");
-  }, [isLoggedIn, navigate]);
+    if (isLoggedIn) window.location.assign("/");
+  }, [isLoggedIn]);
 
   useEffect(() => () => dispatch(clearAuthMessage()), [dispatch]);
 
@@ -116,7 +120,7 @@ const Login = () => {
 
       if (response?.err === 0) {
         switchMode(false);
-        navigate("/login");
+        window.location.assign("/login");
       }
       return;
     }
@@ -178,7 +182,7 @@ const Login = () => {
           </small>
         ) : (
           <>
-            <small onClick={() => navigate("/forgot-password")} className="text-blue-600 hover:text-orange-500 cursor-pointer">
+            <small onClick={() => window.location.assign("/forgot-password")} className="text-blue-600 hover:text-orange-500 cursor-pointer">
               Bạn quên mật khẩu?
             </small>
             <small onClick={() => switchMode(true)} className="text-blue-600 hover:text-orange-500 cursor-pointer">

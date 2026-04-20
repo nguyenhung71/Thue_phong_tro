@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import { Address, Button, Overview } from '../../components'
 import { apiCreatePost, apiGetPostById, apiUpdatePost } from '../../services'
 import icons from '../../ultils/icons'
@@ -20,8 +20,9 @@ const initialPayload = {
   province: '',
 }
 
+const managePostsPath = '/he-thong/quan-ly-bai-dang'
+
 const CreatePost = () => {
-  const navigate = useNavigate()
   const { postId } = useParams()
   const isEditMode = Boolean(postId)
   const [payload, setPayload] = useState(initialPayload)
@@ -32,6 +33,7 @@ const CreatePost = () => {
 
   const mapAddress = useMemo(() => [payload.address, payload.province].filter(Boolean).join(', '), [payload.address, payload.province])
   const mapSrc = mapAddress ? `https://www.google.com/maps?q=${encodeURIComponent(mapAddress)}&output=embed` : ''
+  const redirectToManagePosts = () => window.location.assign(managePostsPath)
 
   useEffect(() => {
     return () => {
@@ -52,7 +54,7 @@ const CreatePost = () => {
 
         if (response?.data?.err !== 0 || !post) {
           window.alert(response?.data?.msg || 'Kh\u00f4ng t\u00ecm th\u1ea5y b\u00e0i \u0111\u0103ng c\u1ea7n ch\u1ec9nh s\u1eeda.')
-          navigate('/he-thong/quan-ly-bai-dang')
+          redirectToManagePosts()
           return
         }
 
@@ -82,14 +84,14 @@ const CreatePost = () => {
         setSelectedFiles([])
       } catch (error) {
         window.alert(error?.response?.data?.msg || 'Kh\u00f4ng th\u1ec3 t\u1ea3i d\u1eef li\u1ec7u b\u00e0i \u0111\u0103ng.')
-        navigate('/he-thong/quan-ly-bai-dang')
+        redirectToManagePosts()
       } finally {
         setIsFetching(false)
       }
     }
 
     fetchPostDetail()
-  }, [isEditMode, navigate, postId])
+  }, [isEditMode, postId])
 
   const handleFiles = (e) => {
     const files = Array.from(e.target.files || [])
@@ -158,7 +160,7 @@ const CreatePost = () => {
           return
         }
 
-        navigate('/he-thong/quan-ly-bai-dang')
+        redirectToManagePosts()
         return
       }
 

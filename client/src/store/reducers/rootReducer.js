@@ -18,9 +18,15 @@ const authConfig = {
   whitelist: ["isLoggedIn", "token", "roleId"],
 };
 
+const userConfig = {
+  ...commonConfig,
+  key: "user",
+  whitelist: ["currentData"],
+};
+
 const rootReducer = combineReducers({
   auth: persistReducer(authConfig, authReducer),
-  user: userReducer,
+  user: persistReducer(userConfig, userReducer),
   post: postReducer,
   app: appReducer,
 });

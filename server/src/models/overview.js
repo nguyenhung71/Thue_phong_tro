@@ -12,8 +12,6 @@ module.exports = (sequelize, DataTypes) => {
       primaryKey: true
     },
     code: DataTypes.STRING,
-    area: DataTypes.STRING,
-    type: DataTypes.STRING,
     target: DataTypes.STRING,
     created: DataTypes.DATE,
     expire: DataTypes.DATE,

@@ -1,14 +1,13 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
-import { createSearchParams, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
+import { createSearchParams, useLocation, useSearchParams } from 'react-router-dom'
+import { useSelector } from 'react-redux'
 import { Modal, SearchItem } from '../../components'
 import icons from '../../ultils/icons'
 import { path } from '../../ultils/constant'
-import { useSelector } from 'react-redux'
 
 const { BsChevronRight, FiSearch, HiOutlineLocationMarker, MdOutlineHouseSiding, RiCrop2Line, TbReportMoney } = icons
 
 const Search = () => {
-  const navigate = useNavigate()
   const location = useLocation()
   const [searchParams] = useSearchParams()
   const [isShowModal, setIsShowModal] = useState(false)
@@ -67,9 +66,9 @@ const Search = () => {
     })
 
     nextParams.page = 1
-    const titleSearch = `${currentCategoryLabel || 'Cho thuê tất cả'}${queries.province ? ` tại ${queries.province}` : ''}${queries.price ? ` ${queries.price}` : ''}${queries.area ? ` ${queries.area}` : ''}`.trim()
+    nextParams.titleSearch = `${currentCategoryLabel || 'Cho thuê tất cả'}${queries.province ? ` tại ${queries.province}` : ''}${queries.price ? ` ${queries.price}` : ''}${queries.area ? ` ${queries.area}` : ''}`.trim()
 
-    navigate({ pathname: path.SEARCH, search: createSearchParams(nextParams).toString() }, { state: { titleSearch } })
+    window.location.assign(`/${path.SEARCH}?${createSearchParams(nextParams).toString()}`)
   }
 
   return (

@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
+import { useSearchParams } from 'react-router-dom'
 import logo from '../../assets/logowithoutbg.png'
 import { Button, User } from '../../components'
 import * as actions from '../../store/actions'
@@ -10,7 +10,6 @@ import icons from '../../ultils/icons'
 const { AiOutlineLogout, AiOutlinePlusCircle, BsChevronDown } = icons
 
 const Header = () => {
-  const navigate = useNavigate()
   const dispatch = useDispatch()
   const [searchParams] = useSearchParams()
   const currentPage = searchParams.get('page') || '1'
@@ -25,17 +24,15 @@ const Header = () => {
   const loginPath = useMemo(() => '/login', [])
   const createPostPath = useMemo(() => '/he-thong/tao-moi-bai-dang', [])
   const canCreatePost = roleId === 'LANDLORD' || roleId === 'ADMIN'
-  const visibleMenuManage = canCreatePost
-    ? menuManage
-    : menuManage.filter((item) => item.path !== createPostPath)
+  const visibleMenuManage = canCreatePost ? menuManage : menuManage.filter((item) => item.path !== createPostPath)
 
-  const handleGoLogin = (flag) => {
-    navigate(loginPath, { state: { flag } })
+  const handleGoLogin = (isRegisterMode) => {
+    window.location.assign(isRegisterMode ? `${loginPath}?mode=register` : loginPath)
   }
 
   const handleCreatePost = () => {
     if (!isLoggedIn) {
-      navigate(loginPath, { state: { flag: false } })
+      window.location.assign(loginPath)
       return
     }
 
@@ -44,15 +41,21 @@ const Header = () => {
       return
     }
 
-    navigate(createPostPath)
+    window.location.assign(createPostPath)
+  }
+
+  const handleLogout = () => {
+    setIsShowMenu(false)
+    dispatch(actions.logout())
+    window.location.assign('/')
   }
 
   return (
     <div ref={headerRef} className='w-4/5 lg:w-3/5'>
       <div className='w-full flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between'>
-        <Link to='/'>
+        <a href='/'>
           <img src={logo} alt='logo' className='w-[240px] h-[70px] object-contain' />
-        </Link>
+        </a>
         <div className='flex flex-col gap-3 items-start lg:flex-row lg:items-center lg:gap-2'>
           {!isLoggedIn && (
             <div className='flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-2'>
@@ -76,23 +79,17 @@ const Header = () => {
               {isShowMenu && (
                 <div className='absolute min-w-200 top-full bg-white shadow-md rounded-md p-4 right-0 flex flex-col z-10'>
                   {visibleMenuManage.map((item) => (
-                    <Link
+                    <a
                       className='hover:text-orange-500 flex items-center gap-2 text-blue-600 border-b border-gray-200 py-2'
                       key={item.id}
-                      to={item?.path}
+                      href={item.path}
                       onClick={() => setIsShowMenu(false)}
                     >
-                      {item?.icon}
+                      {item.icon}
                       {item.text}
-                    </Link>
+                    </a>
                   ))}
-                  <span
-                    className='cursor-pointer hover:text-orange-500 text-blue-500 py-2 flex items-center gap-2'
-                    onClick={() => {
-                      setIsShowMenu(false)
-                      dispatch(actions.logout())
-                    }}
-                  >
+                  <span className='cursor-pointer hover:text-orange-500 text-blue-500 py-2 flex items-center gap-2' onClick={handleLogout}>
                     <AiOutlineLogout />
                     Đăng xuất
                   </span>

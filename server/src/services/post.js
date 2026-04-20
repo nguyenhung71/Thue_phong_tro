@@ -5,10 +5,9 @@ import { paginationHelper, paginationResponse } from '../utils/pagination'
 
 const includeOptions = [
   { model: db.User, as: 'user', attributes: ['id', 'name', 'phone', 'email', 'zalo', 'avatar'] },
-  { model: db.Label, as: 'label', attributes: ['id', 'code', 'value'] },
   { model: db.Category, as: 'category', attributes: ['id', 'code', 'value', 'subheader', 'header'] },
   { model: db.Attribute, as: 'attribute', attributes: ['id', 'price', 'acreage', 'published'] },
-  { model: db.Overview, as: 'overview', attributes: ['id', 'code', 'area', 'type', 'target', 'created', 'expire', 'bonus'] },
+  { model: db.Overview, as: 'overview', attributes: ['id', 'code', 'target', 'created', 'expire', 'bonus'] },
   { model: db.Images, as: 'images', attributes: ['id', 'image'] }
 ]
 
@@ -186,7 +185,14 @@ export const createPost = (payload) => new Promise(async (resolve, reject) => {
     const resolvedCategoryId = await resolveCategoryValue(categoryCode)
 
     const attribute = await db.Attribute.create({ id: v4(), price, acreage, published: new Date().toLocaleDateString('vi-VN') }, { transaction })
-    const overview = await db.Overview.create({ id: v4(), code: `OV${Math.floor(Math.random() * 99999)}`, area: acreage, type: resolvedCategoryId, target: target || 'Tất cả', created: new Date(), expire: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), bonus: 'Tin thường' }, { transaction })
+    const overview = await db.Overview.create({
+      id: v4(),
+      code: `OV${Math.floor(Math.random() * 99999)}`,
+      target: target || 'Tất cả',
+      created: new Date(),
+      expire: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      bonus: 'Tin thường'
+    }, { transaction })
 
     let imagesId = null
     if (files && files.length > 0) {
@@ -196,7 +202,17 @@ export const createPost = (payload) => new Promise(async (resolve, reject) => {
     }
 
     const fullAddress = [address, district, province].filter(Boolean).join(', ')
-    const post = await db.Post.create({ id: v4(), title, address: fullAddress, categoryCode: resolvedCategoryId, description, userId, attributeId: attribute.id, overviewId: overview.id, imagesId }, { transaction })
+    const post = await db.Post.create({
+      id: v4(),
+      title,
+      address: fullAddress,
+      categoryCode: resolvedCategoryId,
+      description,
+      userId,
+      attributeId: attribute.id,
+      overviewId: overview.id,
+      imagesId
+    }, { transaction })
     await transaction.commit()
     resolve({ err: 0, msg: 'Tạo bài đăng thành công.', response: post })
   } catch (error) {
@@ -235,8 +251,12 @@ export const updatePost = (payload, id, userId, roleId) => new Promise(async (re
     const fullAddress = [address, district, province].filter(Boolean).join(', ')
 
     await db.Post.update({ title, address: fullAddress, categoryCode: resolvedCategoryId, description }, { where: { id }, transaction })
-    if (plainPost.attribute?.id) await db.Attribute.update({ price, acreage, published: new Date().toLocaleDateString('vi-VN') }, { where: { id: plainPost.attribute.id }, transaction })
-    if (plainPost.overview?.id) await db.Overview.update({ area: acreage, type: resolvedCategoryId, target: target || 'Tất cả' }, { where: { id: plainPost.overview.id }, transaction })
+    if (plainPost.attribute?.id) {
+      await db.Attribute.update({ price, acreage, published: new Date().toLocaleDateString('vi-VN') }, { where: { id: plainPost.attribute.id }, transaction })
+    }
+    if (plainPost.overview?.id) {
+      await db.Overview.update({ target: target || 'Tất cả' }, { where: { id: plainPost.overview.id }, transaction })
+    }
 
     if (files && files.length > 0) {
       const imageUrls = await Promise.all(files.map(uploadBufferToCloudinary))
@@ -257,14 +277,29 @@ export const updatePost = (payload, id, userId, roleId) => new Promise(async (re
 })
 
 export const deletePost = (id, userId, roleId) => new Promise(async (resolve, reject) => {
+  const transaction = await db.sequelize.transaction()
   try {
-    const post = await db.Post.findOne({ where: { id }, raw: true })
-    if (!post) return resolve({ err: 1, msg: 'Không tìm thấy bài đăng.' })
-    if (roleId !== 'ADMIN' && post.userId !== userId) return resolve({ err: 1, msg: 'Bạn không có quyền xóa bài đăng này.' })
+    const post = await db.Post.findOne({ where: { id }, raw: true, transaction })
+    if (!post) {
+      await transaction.rollback()
+      return resolve({ err: 1, msg: 'Không tìm thấy bài đăng.' })
+    }
+    if (roleId !== 'ADMIN' && post.userId !== userId) {
+      await transaction.rollback()
+      return resolve({ err: 1, msg: 'Bạn không có quyền xóa bài đăng này.' })
+    }
 
-    const response = await db.Post.destroy({ where: { id } })
+    const response = await db.Post.destroy({ where: { id }, transaction })
+    if (response > 0) {
+      if (post.attributeId) await db.Attribute.destroy({ where: { id: post.attributeId }, transaction })
+      if (post.overviewId) await db.Overview.destroy({ where: { id: post.overviewId }, transaction })
+      if (post.imagesId) await db.Images.destroy({ where: { id: post.imagesId }, transaction })
+    }
+
+    await transaction.commit()
     resolve({ err: response > 0 ? 0 : 1, msg: response > 0 ? 'Xóa bài đăng thành công.' : 'Xóa bài đăng thất bại.' })
   } catch (error) {
+    await transaction.rollback()
     reject(error)
   }
 })
