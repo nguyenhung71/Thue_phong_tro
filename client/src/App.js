@@ -11,10 +11,12 @@ import {
   ResetPassword,
   SearchDetail,
 } from "./containers/public";
-import { AccountInfo, ContactInfo, CreatePost, ManagePost, System } from "./containers/system";
+import { AccountInfo, ContactInfo, CreatePost, ManagePost, ManageUsers, System } from "./containers/system";
 import * as actions from "./store/actions";
 import { path } from "./ultils/constant";
 import { categoryRoutes } from "./ultils/navigation";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function App() {
   const dispatch = useDispatch();
@@ -35,11 +37,13 @@ function App() {
 
   return (
     <div className="bg-primary">
+       <ToastContainer position="bottom-right" autoClose={5000} />
       <Routes>
         <Route path={path.SYSTEM} element={<System />}>
           <Route index element={<Navigate to={path.CREATE_POST} replace />} />
           <Route path={path.CREATE_POST} element={<CreatePost />} />
           <Route path={path.MANAGE_POSTS} element={<ManagePost />} />
+          <Route path={path.MANAGE_USERS} element={<ManageUsers />} />
           <Route path={path.ACCOUNT_INFO} element={<AccountInfo />} />
           <Route path={path.EDIT_ACCOUNT} element={<AccountInfo />} />
           <Route path={path.EDIT_POST} element={<CreatePost />} />

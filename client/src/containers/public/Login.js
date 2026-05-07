@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 import { Button, InputForm } from "../../components";
 import { clearAuthMessage, login, register } from "../../store/actions/auth";
 
@@ -16,12 +17,14 @@ const getPasswordError = (password) => {
 const Login = () => {
   const location = useLocation();
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { isLoggedIn, msg } = useSelector((state) => state.auth);
   const registerMode = useMemo(() => {
     const search = new URLSearchParams(location.search);
     if (typeof location?.state?.flag === "boolean") return location.state.flag;
     return search.get("mode") === "register";
   }, [location.search, location.state]);
+
   const [isRegister, setIsRegister] = useState(registerMode);
   const [invalidFields, setInvalidFields] = useState([]);
   const [payload, setPayload] = useState({
@@ -38,8 +41,10 @@ const Login = () => {
   }, [registerMode]);
 
   useEffect(() => {
-    if (isLoggedIn) window.location.assign("/");
-  }, [isLoggedIn]);
+    if (isLoggedIn) {
+      navigate("/");
+    }
+  }, [isLoggedIn, navigate]);
 
   useEffect(() => () => dispatch(clearAuthMessage()), [dispatch]);
 
@@ -70,8 +75,8 @@ const Login = () => {
       }
     });
 
-    if (data.phone && !/^\d{10}$/.test(data.phone)) {
-      errors.push({ name: "phone", message: "Số điện thoại không hợp lệ" });
+    if (data.phone && !/^\d{8,11}$/.test(data.phone)) {
+      errors.push({ name: "phone", message: "Số điện thoại phải có từ 8 đến 11 chữ số" });
     }
 
     const passwordError = data.password ? getPasswordError(data.password) : "";
@@ -119,15 +124,21 @@ const Login = () => {
       );
 
       if (response?.err === 0) {
+        toast.success("Đăng ký thành công!");
         switchMode(false);
-        window.location.assign("/login");
       }
       return;
     }
 
     const loginPayload = { phone: payload.phone, password: payload.password };
     if (validate(loginPayload) > 0) return;
-    await dispatch(login(loginPayload));
+
+    const response = await dispatch(login(loginPayload));
+    if (response?.err === 0) {
+      toast.success("Đăng nhập thành công!");
+    } else {
+      toast.error(response?.msg || "Đăng nhập thất bại!");
+    }
   };
 
   return (
@@ -148,7 +159,14 @@ const Login = () => {
         <InputForm setInvalidFields={setInvalidFields} invalidFields={invalidFields} label="Mật khẩu" value={payload.password} setValue={setPayload} type="password" />
 
         {isRegister && (
-          <InputForm setInvalidFields={setInvalidFields} invalidFields={invalidFields} label="Xác nhận mật khẩu" value={payload.confirmPassword} setValue={setPayload} type="confirmPassword" />
+          <InputForm
+            setInvalidFields={setInvalidFields}
+            invalidFields={invalidFields}
+            label="Xác nhận mật khẩu"
+            value={payload.confirmPassword}
+            setValue={setPayload}
+            type="confirmPassword"
+          />
         )}
 
         {isRegister && (

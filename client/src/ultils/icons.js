@@ -11,6 +11,7 @@ import { GrLinkNext, GrLinkPrevious, GrNext, GrStar } from "react-icons/gr";
 import { HiOutlineLocationMarker } from "react-icons/hi";
 import { ImBin, ImPencil2 } from "react-icons/im";
 import { MdOutlineHouseSiding, MdOutlineLibraryBooks } from "react-icons/md";
+import { FaUsersCog } from "react-icons/fa";
 import { RiCrop2Line, RiHeartFill, RiHeartLine } from "react-icons/ri";
 import { TbReportMoney } from "react-icons/tb";
 
@@ -36,6 +37,7 @@ const icons = {
   BsChevronDown,
   ImBin,
   BsCameraFill,
+  FaUsersCog,
 };
 
 export default icons;

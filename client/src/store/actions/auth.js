@@ -1,3 +1,4 @@
+import { persistor } from "../../redux";
 import { apiLogin, apiRegister } from "../../services/auth";
 import actionTypes from "./actionTypes";
 
@@ -64,3 +65,18 @@ export const clearAuthMessage = () => ({
 export const logout = () => ({
   type: actionTypes.LOGOUT,
 });
+
+export const logoutAndRedirect = (redirectPath = "/") => async (dispatch) => {
+  dispatch({ type: actionTypes.LOGOUT });
+
+  try {
+    persistor.pause();
+    await persistor.flush();
+    await persistor.purge();
+  } catch (error) {
+  }
+
+  window.localStorage.removeItem("persist:auth");
+  window.localStorage.removeItem("persist:user");
+  window.location.assign(redirectPath);
+};

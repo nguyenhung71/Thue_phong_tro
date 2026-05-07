@@ -1,4 +1,5 @@
 import axios from "axios";
+import { store } from "./redux";
 
 const instance = axios.create({
   baseURL: process.env.REACT_APP_SERVER_URL,
@@ -6,9 +7,11 @@ const instance = axios.create({
 
 instance.interceptors.request.use(
   function (config) {
+    const stateToken = store.getState()?.auth?.token;
     const persistedAuth = window.localStorage.getItem("persist:auth");
-    const token =
+    const persistedToken =
       persistedAuth && JSON.parse(persistedAuth)?.token?.slice(1, -1);
+    const token = stateToken || persistedToken;
 
     config.headers = {
       ...config.headers,

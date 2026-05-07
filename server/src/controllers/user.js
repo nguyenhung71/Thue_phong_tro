@@ -70,8 +70,9 @@ export const updateUserByAdmin = async (req, res) => {
 
 export const deleteUserByAdmin = async (req, res) => {
     const { id } = req.params
+    const actingUserId = req.user?.id
     try {
-        const response = await services.deleteUserByAdmin(id)
+        const response = await services.deleteUserByAdmin(id, actingUserId)
         return res.status(200).json(response)
     } catch (error) {
         return res.status(500).json({ err: -1, msg: 'Failed at user controller: ' + error })

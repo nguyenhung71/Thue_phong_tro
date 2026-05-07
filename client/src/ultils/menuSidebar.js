@@ -1,6 +1,6 @@
 import icons from './icons'
 
-const { ImPencil2, MdOutlineLibraryBooks, BiUserPin } = icons
+const { ImPencil2, MdOutlineLibraryBooks, BiUserPin, FaUsersCog } = icons
 
 const menuSidebar = [
     {
@@ -14,6 +14,13 @@ const menuSidebar = [
         text: 'Qu\u1ea3n l\u00fd b\u00e0i \u0111\u0103ng',
         path: '/he-thong/quan-ly-bai-dang',
         icon: <MdOutlineLibraryBooks />
+    },
+    {
+        id: 3,
+        text: 'Qu\u1ea3n l\u00fd ng\u01b0\u1eddi d\u00f9ng',
+        path: '/he-thong/quan-ly-nguoi-dung',
+        icon: <FaUsersCog />,
+        roles: ['ADMIN']
     },
     {
         id: 4,

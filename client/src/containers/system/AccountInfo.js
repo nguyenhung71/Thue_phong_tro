@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
+import { toast } from 'react-toastify'
 import { apiUpdateCurrentUser } from '../../services'
 import * as actions from '../../store/actions'
 
@@ -52,18 +53,21 @@ const AccountInfo = () => {
     setPreviewUrl(URL.createObjectURL(file))
   }
 
-  const displayAvatar = useMemo(() => previewUrl || currentData?.avatar || 'https://lnsel.com/wp-content/uploads/2018/12/anon-avatar-300x300.png', [currentData?.avatar, previewUrl])
+  const displayAvatar = useMemo(
+    () => previewUrl || currentData?.avatar || 'https://lnsel.com/wp-content/uploads/2018/12/anon-avatar-300x300.png',
+    [currentData?.avatar, previewUrl]
+  )
 
   const handleSubmit = async (event) => {
     event.preventDefault()
 
     if (!formData.name.trim() || !formData.phone.trim()) {
-      window.alert('Vui lòng nhập đầy đủ họ tên và số điện thoại.')
+      toast.error('Vui lòng nhập đầy đủ họ tên và số điện thoại.')
       return
     }
 
     if (formData.password && formData.password !== formData.confirmPassword) {
-      window.alert('Mật khẩu xác nhận không khớp.')
+      toast.error('Mật khẩu xác nhận không khớp.')
       return
     }
 
@@ -79,7 +83,7 @@ const AccountInfo = () => {
       setIsSaving(true)
       const response = await apiUpdateCurrentUser(payload)
       if (response?.data?.err === 0) {
-        window.alert('Cập nhật thông tin cá nhân thành công.')
+        toast.success('Cập nhật thông tin cá nhân thành công.')
         dispatch(actions.getCurrent())
         setFormData((prev) => ({ ...prev, password: '', confirmPassword: '' }))
         setAvatarFile(null)
@@ -87,9 +91,9 @@ const AccountInfo = () => {
         return
       }
 
-      window.alert(response?.data?.msg || 'Không thể cập nhật thông tin cá nhân.')
+      toast.error(response?.data?.msg || 'Không thể cập nhật thông tin cá nhân.')
     } catch (error) {
-      window.alert(error?.response?.data?.msg || 'Không thể cập nhật thông tin cá nhân.')
+      toast.error(error?.response?.data?.msg || 'Không thể cập nhật thông tin cá nhân.')
     } finally {
       setIsSaving(false)
     }

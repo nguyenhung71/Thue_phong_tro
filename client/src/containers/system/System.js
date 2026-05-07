@@ -7,10 +7,12 @@ import { Header, Sidebar } from './'
 const System = () => {
   const location = useLocation()
   const { isLoggedIn, roleId } = useSelector((state) => state.auth)
-  const canCreatePost = roleId === 'LANDLORD' || roleId === 'ADMIN'
+  const canCreatePost = roleId === 'LANDLORD'
+  const isAdminRoute = location.pathname.includes(path.MANAGE_USERS)
 
   if (!isLoggedIn) return <Navigate to={`/${path.LOGIN}`} replace={true} />
   if (!canCreatePost && location.pathname.includes(path.CREATE_POST)) return <Navigate to='/' replace={true} />
+  if (isAdminRoute && roleId !== 'ADMIN') return <Navigate to='/' replace={true} />
 
   return (
     <div className='w-full h-screen flex flex-col items-center'>

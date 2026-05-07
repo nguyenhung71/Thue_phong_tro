@@ -1,8 +1,9 @@
-import 'dotenv/config'  
+import 'dotenv/config'
 import express from 'express'
 import cors from 'cors'
 import initRoutes from './src/routes'
 import sequelize from './src/config/connectDatabase'
+import ensureDefaultAdmin from './src/bootstrap/ensureDefaultAdmin'
 
 const app = express()
 
@@ -16,15 +17,23 @@ app.use(express.urlencoded({ extended: true }))
 
 initRoutes(app)
 
-// 🔥 kết nối DB đúng cách
-sequelize.authenticate()
-  .then(() => console.log("Kết nối DB thành công"))
-  .catch(err => console.error("Lỗi DB:", err))
-
 const port = process.env.PORT || 8888
 
-app.listen(port, () => {
-  console.log(`Máy chủ đang chạy ở ${port}`)
-}).on('error', (error) => {
-  console.error('Khởi động máy chủ thất bại:', error.message)
-})
+const startServer = async () => {
+  try {
+    await sequelize.authenticate()
+    console.log('Ket noi DB thanh cong')
+
+    await ensureDefaultAdmin()
+
+    app.listen(port, () => {
+      console.log(`May chu dang chay o ${port}`)
+    }).on('error', (error) => {
+      console.error('Khoi dong may chu that bai:', error.message)
+    })
+  } catch (error) {
+    console.error('Loi khoi dong server:', error)
+  }
+}
+
+startServer()
