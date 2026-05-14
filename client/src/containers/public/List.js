@@ -27,6 +27,7 @@ const List = ({ categoryId, categoryCode }) => {
     const nextQuery = Object.fromEntries(searchParams.entries())
     if (categoryId && categoryId !== 'none') nextQuery.categoryId = categoryId
     if (categoryCode && categoryCode !== 'none') nextQuery.categoryCode = categoryCode
+    nextQuery.limit = process.env.REACT_APP_LIMIT_POSTS || 5
     return nextQuery
   }, [categoryCode, categoryId, searchParams])
 

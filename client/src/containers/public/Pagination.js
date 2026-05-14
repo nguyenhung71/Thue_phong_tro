@@ -38,12 +38,14 @@ const Pagination = () => {
   if (lastPage <= 1) return null
 
   return (
-    <div className='flex items-center justify-center gap-2 py-5'>
+    <div className='flex items-center justify-center gap-2 py-5 text-sm'>
+      {currentPage > 1 && <PageNumber setCurrentPage={setCurrentPage} text='« Trang trước' targetPage={currentPage - 1} currentPage={currentPage} />}
       {!isHideStart && <PageNumber setCurrentPage={setCurrentPage} text={1} currentPage={currentPage} />}
       {!isHideStart && currentPage !== 4 && <PageNumber text='...' currentPage={currentPage} />}
       {arrPage.map((item) => <PageNumber key={item} text={item} setCurrentPage={setCurrentPage} currentPage={currentPage} />)}
       {!isHideEnd && <PageNumber text='...' currentPage={currentPage} />}
-      {!isHideEnd && <PageNumber icon={<GrLinkNext />} setCurrentPage={setCurrentPage} text={lastPage} currentPage={currentPage} />}
+      {!isHideEnd && <PageNumber setCurrentPage={setCurrentPage} text={'»»'} targetPage={lastPage} currentPage={currentPage} />}
+      {currentPage < lastPage && <PageNumber setCurrentPage={setCurrentPage} text='Trang sau »' targetPage={currentPage + 1} currentPage={currentPage} />}
     </div>
   )
 }

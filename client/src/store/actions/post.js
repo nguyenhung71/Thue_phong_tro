@@ -38,7 +38,7 @@ export const getPostsLimit = (query = {}) => async (dispatch) => {
             dispatch({
                 type: actionTypes.GET_POSTS_LIMIT,
                 posts: response.data.response?.rows,
-                count: response.data.response?.count,
+                count: response.data.response?.totalItems || response.data.response?.count || 0,
                 msg: ''
             })
         } else {
