@@ -11,10 +11,6 @@ module.exports = {
       title: {
         type: Sequelize.STRING
       },
-      star: {
-        type: Sequelize.STRING,
-        defaultValue: '0'
-      },
       labelCode: {
         type: Sequelize.STRING
       },

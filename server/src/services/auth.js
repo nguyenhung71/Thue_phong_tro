@@ -1,60 +1,112 @@
-import db from '../models'
-import bcrypt from 'bcryptjs'
-import { raw } from 'express'
-import jwt from 'jsonwebtoken'
-import { v4 } from 'uuid'
-require ('dotenv').config()
+import db from "../models";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import { v4 } from "uuid";
+import { roles } from "../utils/roles.js";
 
-const hashPassword = password => bcrypt.hashSync(password, bcrypt.genSaltSync(12))
-export const registerService = (body) => new Promise(async (resolve, reject) => {
+require("dotenv").config();
+
+const hashPassword = (password) =>
+  bcrypt.hashSync(password, bcrypt.genSaltSync(12));
+
+export const registerService = (body) =>
+  new Promise(async (resolve, reject) => {
     try {
-        const response = await db.User.findOrCreate({
-            where: { phone: body.phone },
-            defaults: {
-                name: body.name,
-                phone: body.phone,
-                password: hashPassword(body.password),
-                id: v4()
-            }
-        })
-        const token = response[1] && jwt.sign({ id: response[0].id, phone: response[0].phone }, process.env.SECRET_KEY, { expiresIn: '2d' })
+      const { name, phone, email, password, roleId } = body;
 
-        resolve({
-            err: token ? 0 : 2,
-            msg: token ? 'Register successfully' : 'Phone number already exists',
-            token: token || null
-        })
+      const phoneExists = await db.User.findOne({
+        where: { phone },
+        raw: true,
+      });
+
+      if (phoneExists) {
+        return resolve({
+          err: 2,
+          msg: "Số điện thoại đã tồn tại",
+        });
+      }
+
+      const emailExists = await db.User.findOne({
+        where: { email },
+        raw: true,
+      });
+
+      if (emailExists) {
+        return resolve({
+          err: 2,
+          msg: "Email đã tồn tại",
+        });
+      }
+
+      const validRoles = [roles.TENANT, roles.LANDLORD];
+      const finalRoleId = validRoles.includes(roleId) ? roleId : roles.TENANT;
+
+      await db.User.create({
+        id: v4(),
+        name,
+        phone,
+        email,
+        password: hashPassword(password),
+        roleId: finalRoleId,
+      });
+
+      resolve({
+        err: 0,
+        msg: "Đăng ký thành công",
+      });
     } catch (error) {
-        reject(error)
+      reject(error);
     }
-})
-export const loginService = (body) => new Promise(async (resolve, reject) => {
+  });
+
+export const loginService = (body) =>
+  new Promise(async (resolve, reject) => {
     try {
+      const { phone, password } = body;
 
-        const response = await db.User.findOne({
-            where: { phone: body.phone },
-            raw: true
-        })
+      const user = await db.User.findOne({
+        where: { phone },
+        raw: true,
+      });
 
-        const isCorrectPassword = response && bcrypt.compareSync(body.password, response.password)
+      if (!user) {
+        return resolve({
+          err: 2,
+          msg: "Số điện thoại không tồn tại",
+          token: null,
+          roleId: null,
+        });
+      }
 
-        const token = isCorrectPassword && jwt.sign(
-            { id: response.id, phone: response.phone },
-            process.env.SECRET_KEY,
-            { expiresIn: '2d' }
-        )
+      const isCorrectPassword = bcrypt.compareSync(password, user.password);
 
-        resolve({
-            err: token ? 0 : 2,
-            msg: token
-                ? 'Đăng nhập thành công'
-                : response
-                    ? 'Sai mật khẩu'
-                    : 'Số điện thoại không tồn tại',
-            token: token || null
-        })
+      if (!isCorrectPassword) {
+        return resolve({
+          err: 2,
+          msg: "Sai mật khẩu",
+          token: null,
+          roleId: null,
+        });
+      }
 
+      const token = jwt.sign(
+        {
+          id: user.id,
+          phone: user.phone,
+          email: user.email,
+          roleId: user.roleId,
+        },
+        process.env.SECRET_KEY,
+        { expiresIn: "2d" }
+      );
+
+      resolve({
+        err: 0,
+        msg: "Đăng nhập thành công",
+        token,
+        roleId: user.roleId,
+      });
     } catch (error) {
-        reject(error)
+      reject(error);
     }
-})
+  });

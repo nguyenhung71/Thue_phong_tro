@@ -1,225 +1,145 @@
-import React, { useState, useEffect, memo } from 'react'
+import React, { memo, useState } from 'react'
 import icons from '../ultils/icons'
-import { getNumbersPrice, getNumbersArea } from '../ultils/Common/getNumbers'
-import { getCodes, getCodesArea } from '../ultils/Common/getCodes'
 
 const { GrLinkPrevious } = icons
 
+const getRangeLabel = (name, min, max) => {
+  const unit = name === 'price' ? 'triệu' : 'm2'
+  if ((max === null || max === undefined) && min !== null && min !== undefined) return `Từ ${min} ${unit} trở lên`
+  if ((min === 0 || min === null || min === undefined) && max !== null && max !== undefined) return `Dưới ${max} ${unit}`
+  return `Từ ${min} - ${max} ${unit}`
+}
+
 const Modal = ({ setIsShowModal, content, name, handleSubmit, queries, arrMinMax, defaultText }) => {
+  const [percent1, setPercent1] = useState(name === 'price' && arrMinMax?.priceArr ? arrMinMax.priceArr[0] : name === 'area' && arrMinMax?.areaArr ? arrMinMax.areaArr[0] : 0)
+  const [percent2, setPercent2] = useState(name === 'price' && arrMinMax?.priceArr ? arrMinMax.priceArr[1] : name === 'area' && arrMinMax?.areaArr ? arrMinMax.areaArr[1] : 100)
+  const [activeEl, setActiveEl] = useState('')
 
-    const [persent1, setPersent1] = useState(name === 'price' && arrMinMax?.priceArr
-        ? arrMinMax?.priceArr[0]
-        : name === 'area' && arrMinMax?.areaArr ? arrMinMax?.areaArr[0] : 0)
-    const [persent2, setPersent2] = useState(name === 'price' && arrMinMax?.priceArr
-        ? arrMinMax?.priceArr[1]
-        : name === 'area' && arrMinMax?.areaArr ? arrMinMax?.areaArr[1] : 100)
-    const [activedEl, setActivedEl] = useState('')
+  const convert100toTarget = (percent) => {
+    if (name === 'price') return Number((((percent / 100) * 15)).toFixed(1))
+    if (name === 'area') return Math.round((percent / 100) * 90)
+    return 0
+  }
 
-    useEffect(() => {
-        const activedTrackEl = document.getElementById('track-active')
-        if (activedTrackEl) {
-            if (persent2 <= persent1) {
-                activedTrackEl.style.left = `${persent2}%`
-                activedTrackEl.style.right = `${100 - persent1}%`
-            } else {
-                activedTrackEl.style.left = `${persent1}%`
-                activedTrackEl.style.right = `${100 - persent2}%`
-            }
-        }
-    }, [persent1, persent2])
+  const convertto100 = (value) => {
+    const total = name === 'price' ? 15 : 90
+    return Math.max(0, Math.min(100, Math.round((value / total) * 100)))
+  }
 
-    const handleClickTrack = (e, value) => {
-        const stackEl = document.getElementById('track')
-        const stackRect = stackEl.getBoundingClientRect()
-        let percent = value ? value : Math.round((e.clientX - stackRect.left) * 100 / stackRect.width, 0)
-        if (Math.abs(percent - persent1) <= (Math.abs(percent - persent2))) {
-            setPersent1(percent)
-        } else {
-            setPersent2(percent)
-        }
-    }
-    const convert100toTarget = percent => {
-        return name === 'price'
-            ? (Math.ceil(Math.round((percent * 1.5)) / 5) * 5) / 10
-            : name === 'area'
-                ? (Math.ceil(Math.round((percent * 0.9)) / 5) * 5)
-                : 0
-    }
-    const convertto100 = percent => {
-        let target = name === 'price' ? 15 : name === 'area' ? 90 : 1
-        return Math.floor((percent / target) * 100)
-    }
-    const handleActive = (code, value) => {
-        setActivedEl(code)
-        let arrMaxMin = name === 'price' ? getNumbersPrice(value) : getNumbersArea(value)
-        if (arrMaxMin.length === 1) {
-            if (arrMaxMin[0] === 1) {
-                setPersent1(0)
-                setPersent2(convertto100(1))
-            }
-            if (arrMaxMin[0] === 20) {
-                setPersent1(0)
-                setPersent2(convertto100(20))
-            }
-            if (arrMaxMin[0] === 15 || arrMaxMin[0] === 90) {
-                setPersent1(100)
-                setPersent2(100)
-            }
-        }
-        if (arrMaxMin.length === 2) {
-            setPersent1(convertto100(arrMaxMin[0]))
-            setPersent2(convertto100(arrMaxMin[1]))
-        }
-    }
-    const handleBeforeSubmit = (e) => {
-        let min = persent1 <= persent2 ? persent1 : persent2
-        let max = persent1 <= persent2 ? persent2 : persent1
-        let arrMinMax = [convert100toTarget(min), convert100toTarget(max)]
-        // const gaps = name === 'price'
-        //     ? getCodes(arrMinMax, content)
-        //     : name === 'area' ? getCodesArea(arrMinMax, content) : []
-        handleSubmit(e, {
-            [`${name}Number`]: arrMinMax,
-            [name]: `Từ ${convert100toTarget(min)} - ${convert100toTarget(max)} ${name === 'price' ? 'triệu' : 'm2'}`
-        }, {
-            [`${name}Arr`]: [min, max]
-        })
-    }
+  const activeItem = content.find((item) => item.code === activeEl)
+  const sortedRange = [convert100toTarget(Math.min(percent1, percent2)), convert100toTarget(Math.max(percent1, percent2))]
+  const displayMaxValue = activeItem?.max === null ? null : sortedRange[1]
 
-    return (
-        <div onClick={() => { setIsShowModal(false) }}
-            className='fixed top-0 left-0 right-0 bottom-0 bg-overlay-70 z-20 flex justify-center items-center'
-        >
-            <div onClick={(e) => {
-                e.stopPropagation()
-                setIsShowModal(true)
-            }}
-                className='w-2/5 h-[500px] bg-white rounded-md relative'
-            >
-                <div className='h-[45px] px-4 flex items-center border-b border-gray-200'>
-                    <span className='cursor-pointer' onClick={(e) => {
-                        e.stopPropagation()
-                        setIsShowModal(false)
-                    }}>
-                        <GrLinkPrevious size={24} />
-                    </span>
-                </div>
-                {(name === 'category' || name === 'province') && <div className='p-4 flex flex-col'>
-                    <span className='py-2 flex gap-2 items-center border-b border-gray-200'>
-                        <input
-                            type="radio"
-                            name={name}
-                            value={defaultText || ''}
-                            id='default'
-                            checked={!queries[`${name}Code`] ? true : false}
-                            onChange={(e) => handleSubmit(e, { [name]: defaultText, [`${name}Code`]: null })}
-                        />
-                        <label htmlFor='default'>{defaultText}</label>
-                    </span>
-                    {content?.map(item => {
-                        return (
-                            <span key={item.code} className='py-2 flex gap-2 items-center border-b border-gray-200'>
-                                <input
-                                    type="radio"
-                                    name={name}
-                                    id={item.code}
-                                    value={item.code}
-                                    checked={item.code === queries[`${name}Code`] ? true : false}
-                                    onChange={(e) => handleSubmit(e, { [name]: item.value, [`${name}Code`]: item.code })}
-                                />
-                                <label htmlFor={item.code}>{item.value}</label>
-                            </span>
-                        )
-                    })}
-                </div>}
-                {(name === 'price' || name === 'area') && <div className='p-12 py-20 '>
-                    <div className='flex flex-col items-center justify-center relative'>
-                        <div className='z-30 absolute top-[-48px] font-bold text-xl text-orange-600'>
-                            {(persent1 === 100 && persent2 === 100)
-                                ? `Trên ${convert100toTarget(persent1)} ${name === 'price' ? 'triệu' : 'm2'} +`
-                                : `Từ ${persent1 <= persent2
-                                    ? convert100toTarget(persent1)
-                                    : convert100toTarget(persent2)} - ${persent2 >= persent1
-                                        ? convert100toTarget(persent2)
-                                        : convert100toTarget(persent1)} ${name === 'price'
-                                            ? 'triệu'
-                                            : 'm2'}`}
-                        </div>
-                        <div onClick={handleClickTrack} id='track' className='slider-track h-[5px] absolute top-0 bottom-0 w-full bg-gray-300 rounded-full'></div>
-                        <div onClick={handleClickTrack} id='track-active' className='slider-track-active h-[5px] absolute top-0 bottom-0 bg-orange-600 rounded-full'></div>
-                        <input
-                            max='100'
-                            min='0'
-                            step='1'
-                            type="range"
-                            value={persent1}
-                            className='w-full appearance-none pointer-events-none absolute top-0 bottom-0'
-                            onChange={(e) => {
-                                setPersent1(+e.target.value)
-                                activedEl && setActivedEl('')
-                            }}
-                        />
-                        <input
-                            max='100'
-                            min='0'
-                            step='1'
-                            type="range"
-                            value={persent2}
-                            className='w-full appearance-none pointer-events-none absolute top-0 bottom-0'
-                            onChange={(e) => {
-                                setPersent2(+e.target.value)
-                                activedEl && setActivedEl('')
-                            }}
-                        />
-                        <div className='absolute z-30 top-6 left-0 right-0 flex justify-between items-center'>
-                            <span
-                                className='cursor-pointer'
-                                onClick={(e) => {
-                                    e.stopPropagation()
-                                    handleClickTrack(e, 0)
-                                }}
-                            >
-                                0
-                            </span>
-                            <span
-                                className='mr-[-12px] cursor-pointer'
-                                onClick={(e) => {
-                                    e.stopPropagation()
-                                    handleClickTrack(e, 100)
-                                }}
-                            >
-                                {name === 'price' ? '15 triệu +' : name === 'area' ? 'Trên 90 m2' : ''}
-                            </span>
-                        </div>
-                    </div>
-                    <div className='mt-24'>
-                        <h4 className='font-medium mb-4'>Chọn nhanh:</h4>
-                        <div className='flex gap-2 items-center flex-wrap w-full'>
-                            {content?.map(item => {
-                                return (
-                                    <button
-                                        key={item.code}
-                                        onClick={() => handleActive(item.code, item.value)}
-                                        className={`px-4 py-2 bg-gray-200 rounded-md cursor-pointer ${item.code === activedEl ? 'bg-blue-500 text-white' : ''}`}
-                                    >
-                                        {item.value}
-                                    </button>
-                                )
-                            })}
-                        </div>
+  const handleClickTrack = (e) => {
+    const trackEl = document.getElementById('track')
+    const trackRect = trackEl.getBoundingClientRect()
+    const nextPercent = Math.round(((e.clientX - trackRect.left) * 100) / trackRect.width)
+    setActiveEl('')
 
-                    </div>
-                </div>}
-                {(name === 'price' || name === 'area') && <button
-                    type='button'
-                    className='w-full absolute bottom-0 bg-[#FFA500] py-2 font-medium rounded-bl-md rounded-br-md'
-                    onClick={handleBeforeSubmit}
-                >
-                    ÁP DỤNG
-                </button>}
-            </div>
+    if (Math.abs(nextPercent - percent1) <= Math.abs(nextPercent - percent2)) setPercent1(nextPercent)
+    else setPercent2(nextPercent)
+  }
+
+  const handleActive = (item) => {
+    const minValue = item.min ?? 0
+    const maxValue = item.max ?? (name === 'price' ? 15 : 90)
+    setActiveEl(item.code)
+    setPercent1(convertto100(minValue))
+    setPercent2(convertto100(maxValue))
+  }
+
+  const handleBeforeSubmit = (e) => {
+    const minValue = activeItem ? (activeItem.min ?? 0) : sortedRange[0]
+    const maxValue = activeItem ? activeItem.max : sortedRange[1]
+    const query = name === 'price'
+      ? { price: getRangeLabel(name, minValue, maxValue), priceMin: minValue, priceMax: maxValue ?? '' }
+      : { area: getRangeLabel(name, minValue, maxValue), acreageMin: minValue, acreageMax: maxValue ?? '' }
+
+    handleSubmit(e, query, { [`${name}Arr`]: [Math.min(percent1, percent2), Math.max(percent1, percent2)] })
+  }
+
+  return (
+    <div onClick={() => setIsShowModal(false)} className='fixed top-0 left-0 right-0 bottom-0 bg-overlay-70 z-20 flex justify-center items-center p-4'>
+      <div onClick={(e) => e.stopPropagation()} className='w-full max-w-[640px] h-[500px] bg-white rounded-md relative overflow-hidden'>
+        <div className='h-[45px] px-4 flex items-center border-b border-gray-200'>
+          <span className='cursor-pointer' onClick={() => setIsShowModal(false)}>
+            <GrLinkPrevious size={24} />
+          </span>
         </div>
-    )
+
+        {(name === 'category' || name === 'province') && (
+          <div className='h-[calc(100%-45px)] p-4'>
+            <div className='h-full overflow-y-auto pr-2'>
+              <span className='py-2 flex gap-2 items-center border-b border-gray-200'>
+                <input
+                  type='radio'
+                  name={name}
+                  value={defaultText || ''}
+                  id='default'
+                  checked={name === 'category' ? !queries.categoryId : !queries.province}
+                  onChange={(e) => handleSubmit(e, name === 'category' ? { category: '', categoryId: '', categoryCode: '' } : { province: '' })}
+                />
+                <label htmlFor='default'>{defaultText}</label>
+              </span>
+              {content.map((item) => {
+                const itemKey = name === 'category' ? (item.id || item.code) : item.province_id
+                const itemLabel = name === 'category' ? item.value : item.province_name
+                const checked = name === 'category' ? String(item.id || item.code) === String(queries.categoryId || '') : item.province_name === queries.province
+
+                return (
+                  <span key={itemKey} className='py-2 flex gap-2 items-center border-b border-gray-200'>
+                    <input
+                      type='radio'
+                      name={name}
+                      id={String(itemKey)}
+                      value={String(itemKey)}
+                      checked={checked}
+                      onChange={(e) => handleSubmit(e, name === 'category'
+                        ? { category: item.value, categoryId: String(item.id || item.code), categoryCode: item.legacyCode || '' }
+                        : { province: item.province_name })}
+                    />
+                    <label htmlFor={String(itemKey)}>{itemLabel}</label>
+                  </span>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
+        {(name === 'price' || name === 'area') && (
+          <div className='p-12 py-20'>
+            <div className='flex flex-col items-center justify-center relative'>
+              <div className='z-30 absolute top-[-48px] font-bold text-xl text-orange-600'>{getRangeLabel(name, activeItem ? (activeItem.min ?? 0) : sortedRange[0], activeItem ? activeItem.max : displayMaxValue)}</div>
+              <div onClick={handleClickTrack} id='track' className='slider-track h-[5px] absolute top-0 bottom-0 w-full bg-gray-300 rounded-full'></div>
+              <div id='track-active' style={{ left: `${Math.min(percent1, percent2)}%`, right: `${100 - Math.max(percent1, percent2)}%` }} className='slider-track-active h-[5px] absolute top-0 bottom-0 bg-orange-600 rounded-full'></div>
+              <input max='100' min='0' step='1' type='range' value={percent1} className='w-full appearance-none pointer-events-none absolute top-0 bottom-0' onChange={(e) => { setPercent1(+e.target.value); setActiveEl('') }} />
+              <input max='100' min='0' step='1' type='range' value={percent2} className='w-full appearance-none pointer-events-none absolute top-0 bottom-0' onChange={(e) => { setPercent2(+e.target.value); setActiveEl('') }} />
+              <div className='absolute z-30 top-6 left-0 right-0 flex justify-between items-center'>
+                <span>0</span>
+                <span>{name === 'price' ? '15 triệu +' : '90 m2 +'}</span>
+              </div>
+            </div>
+            <div className='mt-24'>
+              <h4 className='font-medium mb-4'>Chọn nhanh:</h4>
+              <div className='flex gap-2 items-center flex-wrap w-full'>
+                {content.map((item) => (
+                  <button key={item.code} onClick={() => handleActive(item)} className={`px-4 py-2 bg-gray-200 rounded-md cursor-pointer ${item.code === activeEl ? 'bg-blue-500 text-white' : ''}`}>
+                    {item.value}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {(name === 'price' || name === 'area') && (
+          <button type='button' className='w-full absolute bottom-0 bg-[#FFA500] py-2 font-medium rounded-bl-md rounded-br-md' onClick={handleBeforeSubmit}>
+            Áp dụng
+          </button>
+        )}
+      </div>
+    </div>
+  )
 }
 
 export default memo(Modal)

@@ -17,8 +17,27 @@ module.exports = {
       phone: {
         type: Sequelize.STRING
       },
+      email: {
+        type: Sequelize.STRING
+      },
       zalo: {
         type: Sequelize.STRING
+      },
+      roleId: {
+        type: Sequelize.STRING,
+        allowNull: false,
+        references: {
+          model: 'Roles',
+          key: 'id'
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'RESTRICT'
+      },
+      resetToken: {
+        type: Sequelize.STRING,
+      },
+      resetTokenExpired: {
+        type: Sequelize.BIGINT,
       },
       createdAt: {
         allowNull: false,

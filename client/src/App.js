@@ -1,46 +1,72 @@
-import { Routes, Route } from 'react-router-dom'
-import { Home, Login, Rental, Homepage, DetailPost, SearchDetail } from './containers/Public'
-import { path } from './ultils/constant'
-import { System, CreatePost } from './containers/System'
-import * as actions from './store/actions'
-import { useDispatch, useSelector } from 'react-redux'
-import { useEffect } from 'react'
-
-
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { Navigate, Route, Routes } from "react-router-dom";
+import {
+  DetailPost,
+  ForgotPassword,
+  Home,
+  Homepage,
+  Login,
+  Rental,
+  ResetPassword,
+  SearchDetail,
+} from "./containers/public";
+import { AccountInfo, ContactInfo, CreatePost, ManagePost, ManageUsers, System } from "./containers/system";
+import * as actions from "./store/actions";
+import { path } from "./ultils/constant";
+import { categoryRoutes } from "./ultils/navigation";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function App() {
-  const dispatch = useDispatch()
-  const { isLoggedIn } = useSelector(state => state.auth)
-  useEffect(() => {
-    setTimeout(() => {
-      isLoggedIn && dispatch(actions.getCurrent())
-    }, 1000)
-  }, [isLoggedIn])
+  const dispatch = useDispatch();
+  const { isLoggedIn } = useSelector((state) => state.auth);
 
   useEffect(() => {
-    dispatch(actions.getPrices())
-    dispatch(actions.getAreas())
-    dispatch(actions.getProvinces())
-  }, [])
+    if (isLoggedIn) {
+      dispatch(actions.getCurrent());
+    }
+  }, [dispatch, isLoggedIn]);
+
+  useEffect(() => {
+    dispatch(actions.getCategories());
+    dispatch(actions.getPrices());
+    dispatch(actions.getAreas());
+    dispatch(actions.getProvinces());
+  }, [dispatch]);
 
   return (
     <div className="bg-primary">
+       <ToastContainer position="bottom-right" autoClose={5000} />
       <Routes>
+        <Route path={path.SYSTEM} element={<System />}>
+          <Route index element={<Navigate to={path.CREATE_POST} replace />} />
+          <Route path={path.CREATE_POST} element={<CreatePost />} />
+          <Route path={path.MANAGE_POSTS} element={<ManagePost />} />
+          <Route path={path.MANAGE_USERS} element={<ManageUsers />} />
+          <Route path={path.ACCOUNT_INFO} element={<AccountInfo />} />
+          <Route path={path.EDIT_ACCOUNT} element={<AccountInfo />} />
+          <Route path={path.EDIT_POST} element={<CreatePost />} />
+          <Route path={path.CONTACT} element={<ContactInfo />} />
+        </Route>
         <Route path={path.HOME} element={<Home />}>
-          <Route path='*' element={<Homepage />} />
+          <Route index element={<Homepage />} />
           <Route path={path.LOGIN} element={<Login />} />
+          <Route path={path.FORGOT_PASSWORD} element={<ForgotPassword />} />
+          <Route path={path.RESET_PASSWORD} element={<ResetPassword />} />
           <Route path={path.CHO_THUE_CAN_HO} element={<Rental />} />
           <Route path={path.CHO_THUE_MAT_BANG} element={<Rental />} />
           <Route path={path.CHO_THUE_PHONG_TRO} element={<Rental />} />
           <Route path={path.NHA_CHO_THUE} element={<Rental />} />
           <Route path={path.SEARCH} element={<SearchDetail />} />
           <Route path={path.DETAL_POST__TITLE__POSTID} element={<DetailPost />} />
-          <Route path={'chi-tiet/*'} element={<DetailPost />} />
+          <Route path="chi-tiet/*" element={<DetailPost />} />
+          {categoryRoutes.map((item) => {
+            const Component = item.element;
+            return <Route key={item.path} path={item.path} element={<Component />} />;
+          })}
+          <Route path="*" element={<Homepage />} />
         </Route>
-        <Route path={path.SYSTEM} element={<System />} >
-          <Route path={path.CREATE_POST} element={<CreatePost />} />
-        </Route>
-
       </Routes>
     </div>
   );

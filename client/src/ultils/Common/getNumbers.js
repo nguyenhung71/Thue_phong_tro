@@ -1,2 +1,9 @@
-export const getNumbersPrice = (string) => string.split(' ').map(item => +item).filter(item => !item === false)
-export const getNumbersArea = (string) => string.split(' ').map(item => +item.match(/\d+/)).filter(item => item !== 0)
+export const getNumbersPrice = (string = '') => {
+    const numbers = string.match(/\d+(?:\.\d+)?/g)?.map(Number) || []
+    return numbers
+}
+
+export const getNumbersArea = (string = '') => {
+    const numbers = string.match(/\d+(?:\.\d+)?/g)?.map(Number) || []
+    return numbers
+}
