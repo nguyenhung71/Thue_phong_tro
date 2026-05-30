@@ -140,16 +140,25 @@ export const filterPosts = ({ page, limit, order, sort, title, province, distric
       where.address = { [db.Sequelize.Op.and]: addressParts.map((part) => ({ [db.Sequelize.Op.substring]: part })) }
     }
 
-    const attributeWhere = {}
-    if (priceMin !== undefined && priceMax !== undefined) attributeWhere.price = { [db.Sequelize.Op.between]: [+priceMin, +priceMax] }
-    else if (priceMin !== undefined) attributeWhere.price = { [db.Sequelize.Op.gte]: +priceMin }
-    else if (priceMax !== undefined) attributeWhere.price = { [db.Sequelize.Op.lte]: +priceMax }
+    const attributeWhere = []
+    if (priceMin !== undefined && priceMax !== undefined) {
+      attributeWhere.push(db.sequelize.where(db.sequelize.cast(db.sequelize.col('attribute.price'), 'DECIMAL'), { [db.Sequelize.Op.between]: [+priceMin * 1000000, +priceMax * 1000000] }))
+    } else if (priceMin !== undefined) {
+      attributeWhere.push(db.sequelize.where(db.sequelize.cast(db.sequelize.col('attribute.price'), 'DECIMAL'), { [db.Sequelize.Op.gte]: +priceMin * 1000000 }))
+    } else if (priceMax !== undefined) {
+      attributeWhere.push(db.sequelize.where(db.sequelize.cast(db.sequelize.col('attribute.price'), 'DECIMAL'), { [db.Sequelize.Op.lte]: +priceMax * 1000000 }))
+    }
 
-    if (acreageMin !== undefined && acreageMax !== undefined) attributeWhere.acreage = { [db.Sequelize.Op.between]: [+acreageMin, +acreageMax] }
-    else if (acreageMin !== undefined) attributeWhere.acreage = { [db.Sequelize.Op.gte]: +acreageMin }
-    else if (acreageMax !== undefined) attributeWhere.acreage = { [db.Sequelize.Op.lte]: +acreageMax }
+    if (acreageMin !== undefined && acreageMax !== undefined) {
+      attributeWhere.push(db.sequelize.where(db.sequelize.cast(db.sequelize.fn('REPLACE', db.sequelize.col('attribute.acreage'), ',', '.'), 'DECIMAL'), { [db.Sequelize.Op.between]: [+acreageMin, +acreageMax] }))
+    } else if (acreageMin !== undefined) {
+      attributeWhere.push(db.sequelize.where(db.sequelize.cast(db.sequelize.fn('REPLACE', db.sequelize.col('attribute.acreage'), ',', '.'), 'DECIMAL'), { [db.Sequelize.Op.gte]: +acreageMin }))
+    } else if (acreageMax !== undefined) {
+      attributeWhere.push(db.sequelize.where(db.sequelize.cast(db.sequelize.fn('REPLACE', db.sequelize.col('attribute.acreage'), ',', '.'), 'DECIMAL'), { [db.Sequelize.Op.lte]: +acreageMax }))
+    }
 
-    const hasAttributeFilter = Object.keys(attributeWhere).length > 0
+    const hasAttributeFilter = attributeWhere.length > 0
+    const finalAttributeWhere = hasAttributeFilter ? { [db.Sequelize.Op.and]: attributeWhere } : undefined
     const data = await db.Post.findAndCountAll({
       where,
       offset,
@@ -159,7 +168,7 @@ export const filterPosts = ({ page, limit, order, sort, title, province, distric
       nest: true,
       include: [
         ...includeOptions.filter((item) => item.as !== 'attribute'),
-        { model: db.Attribute, as: 'attribute', attributes: ['id', 'price', 'acreage', 'published'], where: hasAttributeFilter ? attributeWhere : undefined, required: hasAttributeFilter }
+        { model: db.Attribute, as: 'attribute', attributes: ['id', 'price', 'acreage', 'published'], where: finalAttributeWhere, required: hasAttributeFilter }
       ]
     })
 
@@ -246,7 +255,7 @@ export const updatePost = (payload, id, userId, roleId) => new Promise(async (re
       return resolve({ err: 1, msg: 'Bạn không có quyền sửa bài đăng này.' })
     }
 
-    const { title, address, province, district, categoryCode, description, price, acreage, target, files } = payload
+    const { title, address, province, district, categoryCode, description, price, acreage, target, files, serverImages } = payload
     const resolvedCategoryId = await resolveCategoryValue(categoryCode)
     const fullAddress = [address, district, province].filter(Boolean).join(', ')
 
@@ -258,14 +267,30 @@ export const updatePost = (payload, id, userId, roleId) => new Promise(async (re
       await db.Overview.update({ target: target || 'Tất cả' }, { where: { id: plainPost.overview.id }, transaction })
     }
 
+    let remainingImages
+    if (serverImages === undefined) {
+      remainingImages = plainPost.images?.image ? plainPost.images.image.split(',').filter(Boolean) : []
+    } else {
+      remainingImages = serverImages.split(',').filter(Boolean)
+    }
+
+    let newImageUrls = []
     if (files && files.length > 0) {
-      const imageUrls = await Promise.all(files.map(uploadBufferToCloudinary))
-      if (plainPost.images?.id) {
-        await db.Images.update({ image: imageUrls.join(',') }, { where: { id: plainPost.images.id }, transaction })
-      } else {
-        const image = await db.Images.create({ id: v4(), image: imageUrls.join(',') }, { transaction })
-        await db.Post.update({ imagesId: image.id }, { where: { id }, transaction })
-      }
+      newImageUrls = await Promise.all(files.map(uploadBufferToCloudinary))
+    }
+
+    const finalImageUrls = [...remainingImages, ...newImageUrls]
+    if (finalImageUrls.length === 0) {
+      await transaction.rollback()
+      return resolve({ err: 1, msg: 'Phải có ít nhất 1 ảnh' })
+    }
+
+    const joinedImages = finalImageUrls.join(',')
+    if (plainPost.images?.id) {
+      await db.Images.update({ image: joinedImages }, { where: { id: plainPost.images.id }, transaction })
+    } else {
+      const image = await db.Images.create({ id: v4(), image: joinedImages }, { transaction })
+      await db.Post.update({ imagesId: image.id }, { where: { id }, transaction })
     }
 
     await transaction.commit()

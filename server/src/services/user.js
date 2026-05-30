@@ -31,7 +31,7 @@ export const getOne = (id) => new Promise(async (resolve, reject) => {
         })
         resolve({
             err: response ? 0 : 1,
-            msg: response ? 'OK' : 'Khong lay duoc thong tin nguoi dung.',
+            msg: response ? 'OK' : 'Không lấy được thông tin người dùng.',
             response
         })
     } catch (error) {
@@ -42,16 +42,16 @@ export const getOne = (id) => new Promise(async (resolve, reject) => {
 export const updateUser = (payload, id, file) => new Promise(async (resolve, reject) => {
     try {
         const user = await db.User.findOne({ where: { id }, raw: true })
-        if (!user) return resolve({ err: 1, msg: 'Nguoi dung khong ton tai.' })
+        if (!user) return resolve({ err: 1, msg: 'Người dùng không tồn tại.' })
 
         if (payload.phone && payload.phone !== user.phone) {
             const existingPhone = await db.User.findOne({ where: { phone: payload.phone }, raw: true })
-            if (existingPhone) return resolve({ err: 1, msg: 'So dien thoai da ton tai.' })
+            if (existingPhone) return resolve({ err: 1, msg: 'Số điện thoại đã tồn tại.' })
         }
 
         if (payload.email && payload.email !== user.email) {
             const existingEmail = await db.User.findOne({ where: { email: payload.email }, raw: true })
-            if (existingEmail) return resolve({ err: 1, msg: 'Email da ton tai.' })
+            if (existingEmail) return resolve({ err: 1, msg: 'Email đã tồn tại.' })
         }
 
         const updateData = {
@@ -67,7 +67,7 @@ export const updateUser = (payload, id, file) => new Promise(async (resolve, rej
         const response = await db.User.update(updateData, { where: { id } })
         resolve({
             err: response[0] > 0 ? 0 : 1,
-            msg: response[0] > 0 ? 'Cap nhat nguoi dung thanh cong.' : 'Khong the cap nhat nguoi dung.',
+            msg: response[0] > 0 ? 'ập nhật người dùng thành công.' : 'Không thể cập nhật người dùng.',
         })
     } catch (error) {
         reject(error)
@@ -81,7 +81,7 @@ export const getUsers = () => new Promise(async (resolve, reject) => {
             include: [{ model: db.Role, as: 'role', attributes: ['id', 'roleName'] }],
             order: [['createdAt', 'DESC']]
         })
-        resolve({ err: response ? 0 : 1, msg: response ? 'OK' : 'Khong lay duoc danh sach nguoi dung.', response })
+        resolve({ err: response ? 0 : 1, msg: response ? 'OK' : 'Không lấy được danh sách người dùng.', response })
     } catch (error) {
         reject(error)
     }
@@ -94,7 +94,7 @@ export const getUserById = (id) => new Promise(async (resolve, reject) => {
             attributes: { exclude: ['password'] },
             include: [{ model: db.Role, as: 'role', attributes: ['id', 'roleName'] }]
         })
-        resolve({ err: response ? 0 : 1, msg: response ? 'OK' : 'Khong lay duoc nguoi dung theo id.', response })
+        resolve({ err: response ? 0 : 1, msg: response ? 'OK' : 'Không lấy được người dùng theo id.', response })
     } catch (error) {
         reject(error)
     }
@@ -105,18 +105,18 @@ export const createUser = (payload) => new Promise(async (resolve, reject) => {
         const { name, password, phone, email, zalo, roleId } = payload
 
         const existingPhone = await db.User.findOne({ where: { phone }, raw: true })
-        if (existingPhone) return resolve({ err: 1, msg: 'So dien thoai da ton tai.' })
+        if (existingPhone) return resolve({ err: 1, msg: 'Số điện thoại đã tồn tại.' })
 
         if (email) {
             const existingEmail = await db.User.findOne({ where: { email }, raw: true })
-            if (existingEmail) return resolve({ err: 1, msg: 'Email da ton tai.' })
+            if (existingEmail) return resolve({ err: 1, msg: 'Email đã tồn tại.' })
         }
 
         const role = await db.Role.findOne({ where: { id: roleId }, raw: true })
-        if (!role) return resolve({ err: 1, msg: 'Vai tro khong ton tai.' })
+        if (!role) return resolve({ err: 1, msg: 'Vai trò không tồn tại.' })
 
         const response = await db.User.create({ id: v4(), name, password: hashPassword(password), phone, email, zalo, roleId })
-        resolve({ err: response ? 0 : 1, msg: response ? 'Tao nguoi dung thanh cong.' : 'Khong the tao nguoi dung.' })
+        resolve({ err: response ? 0 : 1, msg: response ? 'Tạo người dùng thành công.' : 'Không thể tạo người dùng.' })
     } catch (error) {
         reject(error)
     }
@@ -125,21 +125,21 @@ export const createUser = (payload) => new Promise(async (resolve, reject) => {
 export const updateUserByAdmin = (payload, id, file) => new Promise(async (resolve, reject) => {
     try {
         const user = await db.User.findOne({ where: { id }, raw: true })
-        if (!user) return resolve({ err: 1, msg: 'Nguoi dung khong ton tai.' })
+        if (!user) return resolve({ err: 1, msg: 'Người dùng không tồn tại.' })
 
         if (payload.phone && payload.phone !== user.phone) {
             const existingPhone = await db.User.findOne({ where: { phone: payload.phone }, raw: true })
-            if (existingPhone) return resolve({ err: 1, msg: 'So dien thoai da ton tai.' })
+            if (existingPhone) return resolve({ err: 1, msg: 'Số điện thoại đã tồn tại.' })
         }
 
         if (payload.email && payload.email !== user.email) {
             const existingEmail = await db.User.findOne({ where: { email: payload.email }, raw: true })
-            if (existingEmail) return resolve({ err: 1, msg: 'Email da ton tai.' })
+            if (existingEmail) return resolve({ err: 1, msg: 'Email đã tồn tại.' })
         }
 
         if (payload.roleId) {
             const role = await db.Role.findOne({ where: { id: payload.roleId }, raw: true })
-            if (!role) return resolve({ err: 1, msg: 'Vai tro khong ton tai.' })
+            if (!role) return resolve({ err: 1, msg: 'Vai trò không tồn tại.' })
         }
 
         const updateData = sanitizeUserPayload(payload)
@@ -148,7 +148,7 @@ export const updateUserByAdmin = (payload, id, file) => new Promise(async (resol
         if (file) updateData.avatar = await uploadBufferToCloudinary(file)
 
         const response = await db.User.update(updateData, { where: { id } })
-        resolve({ err: response[0] > 0 ? 0 : 1, msg: response[0] > 0 ? 'Cap nhat nguoi dung thanh cong.' : 'Khong the cap nhat nguoi dung.' })
+        resolve({ err: response[0] > 0 ? 0 : 1, msg: response[0] > 0 ? 'Cập nhật người dùng thành công.' : 'Không thể cập nhật người dùng.' })
     } catch (error) {
         reject(error)
     }
@@ -159,13 +159,13 @@ export const deleteUserByAdmin = (id, actingUserId) => new Promise(async (resolv
     try {
         if (id === actingUserId) {
             await transaction.rollback()
-            return resolve({ err: 1, msg: 'Khong the xoa chinh tai khoan admin dang dang nhap.' })
+            return resolve({ err: 1, msg: 'Không thể xóa chính tài khoản admin đang đăng nhập.' })
         }
 
         const user = await db.User.findOne({ where: { id }, raw: true, transaction })
         if (!user) {
             await transaction.rollback()
-            return resolve({ err: 1, msg: 'Nguoi dung khong ton tai.' })
+            return resolve({ err: 1, msg: 'Người dùng không tồn tại.' })
         }
 
         const posts = await db.Post.findAll({
@@ -198,7 +198,7 @@ export const deleteUserByAdmin = (id, actingUserId) => new Promise(async (resolv
 
         const response = await db.User.destroy({ where: { id }, transaction })
         await transaction.commit()
-        resolve({ err: response > 0 ? 0 : 1, msg: response > 0 ? 'Xoa nguoi dung thanh cong.' : 'Khong the xoa nguoi dung.' })
+        resolve({ err: response > 0 ? 0 : 1, msg: response > 0 ? 'Xóa người dùng thành công.' : 'Không thể xóa người dùng.' })
     } catch (error) {
         await transaction.rollback()
         reject(error)

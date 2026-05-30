@@ -1,4 +1,4 @@
-﻿import fs from 'fs'
+import fs from 'fs'
 import path from 'path'
 import * as services from '../services/post'
 import { priceRanges, acreageRanges } from '../utils/filterData'
@@ -83,6 +83,24 @@ export const createPost = async (req, res) => {
     const { title, address, province, district, categoryCode, description, price, acreage, target } = req.body
     if (!title || !address || !categoryCode || !description || !price || !acreage) {
       return res.status(400).json({ err: 1, msg: 'Thiếu dữ liệu đầu vào.' })
+    }
+
+    if (isNaN(Number(price))) {
+      return res.status(400).json({ err: 1, msg: 'Giá phòng phải là định dạng số' })
+    }
+    if (Number(price) <= 0) {
+      return res.status(400).json({ err: 1, msg: 'Giá phòng phải lớn hơn 0' })
+    }
+
+    if (isNaN(Number(acreage))) {
+      return res.status(400).json({ err: 1, msg: 'Diện tích phải là định dạng số' })
+    }
+    if (Number(acreage) <= 0) {
+      return res.status(400).json({ err: 1, msg: 'Diện tích phải lớn hơn 0' })
+    }
+
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({ err: 1, msg: 'Phải có ít nhất 1 ảnh' })
     }
 
     const response = await services.createPost({ title, address, province, district, categoryCode, description, price, acreage, target, userId, files: req.files })

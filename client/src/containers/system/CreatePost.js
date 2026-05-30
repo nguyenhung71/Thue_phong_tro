@@ -31,6 +31,7 @@ const CreatePost = () => {
   const [imagesPreview, setImagesPreview] = useState([])
   const [isLoading, setIsLoading] = useState(false)
   const [isFetching, setIsFetching] = useState(false)
+  const [invalidFields, setInvalidFields] = useState([])
 
   const mapAddress = useMemo(() => [payload.address, payload.province].filter(Boolean).join(', '), [payload.address, payload.province])
   const mapSrc = mapAddress ? `https://www.google.com/maps?q=${encodeURIComponent(mapAddress)}&output=embed` : ''
@@ -98,6 +99,12 @@ const CreatePost = () => {
     const files = Array.from(e.target.files || [])
     if (!files.length) return
 
+    const hasInvalidFile = files.some(file => !file.type.startsWith('image/'))
+    if (hasInvalidFile) {
+      toast.error('Định dạng file không hỗ trợ')
+      return
+    }
+
     const nextPreviewItems = files.map((file) => ({
       id: `${file.name}-${file.lastModified}`,
       url: URL.createObjectURL(file),
@@ -108,25 +115,94 @@ const CreatePost = () => {
     setSelectedFiles(files)
     setImagesPreview(nextPreviewItems)
     setPayload((prev) => ({ ...prev, images: nextPreviewItems.map((item) => item.url) }))
+
+    if (invalidFields?.some(item => item.name === 'images')) {
+      setInvalidFields(prev => prev.filter(item => item.name !== 'images'))
+    }
   }
 
   const handleDeleteImage = (imageId) => {
     setImagesPreview((prev) => {
       const target = prev.find((item) => item.id === imageId)
       if (target?.isLocal) URL.revokeObjectURL(target.url)
-      return prev.filter((item) => item.id !== imageId)
+      const nextPreview = prev.filter((item) => item.id !== imageId)
+      if (nextPreview.length === 0) {
+        setInvalidFields(prevErrors => [...prevErrors.filter(err => err.name !== 'images'), { name: 'images', message: 'Phải có ít nhất 1 ảnh' }])
+      }
+      return nextPreview
     })
 
     setSelectedFiles((prev) => prev.filter((file) => `${file.name}-${file.lastModified}` !== imageId))
-    setPayload((prev) => ({
-      ...prev,
-      images: prev.images?.filter((item) => !imagesPreview.find((preview) => preview.id === imageId && preview.url === item)),
-    }))
+    setPayload((prev) => {
+      const nextImages = prev.images?.filter((item) => !imagesPreview.find((preview) => preview.id === imageId && preview.url === item))
+      return {
+        ...prev,
+        images: nextImages,
+      }
+    })
   }
 
   const handleSubmit = async () => {
-    if (!payload.title || !payload.address || !payload.categoryCode || !payload.description || !payload.priceNumber || !payload.areaNumber) {
-      toast.error('Vui lòng nhập đầy đủ thông tin bắt buộc trước khi lưu bài đăng.')
+    const errors = []
+    if (!payload.categoryCode) errors.push({ name: 'categoryCode', message: 'Trường này không được để trống' })
+    if (!payload.title) errors.push({ name: 'title', message: 'Trường này không được để trống' })
+    if (!payload.description) errors.push({ name: 'description', message: 'Trường này không được để trống' })
+
+    let priceInvalidType = ''
+    if (!payload.priceNumber) {
+      errors.push({ name: 'priceNumber', message: 'Trường này không được để trống' })
+      priceInvalidType = 'empty'
+    } else if (isNaN(Number(payload.priceNumber))) {
+      errors.push({ name: 'priceNumber', message: 'Giá phòng phải là định dạng số' })
+      priceInvalidType = 'nan'
+    } else if (Number(payload.priceNumber) <= 0) {
+      errors.push({ name: 'priceNumber', message: 'Giá phòng phải lớn hơn 0' })
+      priceInvalidType = 'less_than_zero'
+    }
+
+    let areaInvalidType = ''
+    if (!payload.areaNumber) {
+      errors.push({ name: 'areaNumber', message: 'Trường này không được để trống' })
+      areaInvalidType = 'empty'
+    } else if (isNaN(Number(payload.areaNumber))) {
+      errors.push({ name: 'areaNumber', message: 'Diện tích phải là định dạng số' })
+      areaInvalidType = 'nan'
+    } else if (Number(payload.areaNumber) <= 0) {
+      errors.push({ name: 'areaNumber', message: 'Diện tích phải lớn hơn 0' })
+      areaInvalidType = 'less_than_zero'
+    }
+
+    if (!payload.address) errors.push({ name: 'address', message: 'Trường này không được để trống' })
+    if (!payload.province) errors.push({ name: 'province', message: 'Trường này không được để trống' })
+
+    const hasEmptyField = !payload.categoryCode || !payload.title || !payload.description || !payload.address || !payload.province || priceInvalidType === 'empty' || areaInvalidType === 'empty'
+
+    const hasInvalidFile = selectedFiles.some(file => !file.type.startsWith('image/'))
+    if (hasInvalidFile) {
+      errors.push({ name: 'images', message: 'Định dạng file không hỗ trợ' })
+    }
+
+    if (!imagesPreview || imagesPreview.length === 0) {
+      errors.push({ name: 'images', message: 'Phải có ít nhất 1 ảnh' })
+    }
+
+    if (errors.length > 0) {
+      setInvalidFields(errors)
+      if (hasEmptyField) {
+        toast.error('Trường này không được để trống')
+      } else if (priceInvalidType === 'nan') {
+        toast.error('Giá phòng phải là định dạng số')
+      } else if (priceInvalidType === 'less_than_zero') {
+        toast.error('Giá phòng phải lớn hơn 0')
+      } else if (areaInvalidType === 'nan') {
+        toast.error('Diện tích phải là định dạng số')
+      } else if (areaInvalidType === 'less_than_zero') {
+        toast.error('Diện tích phải lớn hơn 0')
+      } else if (hasInvalidFile) {
+        toast.error('Định dạng file không hỗ trợ')
+      } else {
+        toast.error('Phải có ít nhất 1 ảnh')
+      }
       return
     }
 
@@ -142,6 +218,9 @@ const CreatePost = () => {
       formData.append('price', payload.priceNumber)
       formData.append('acreage', payload.areaNumber)
       formData.append('target', payload.target)
+
+      const serverImageUrls = imagesPreview.filter(item => !item.isLocal).map(item => item.url)
+      formData.append('serverImages', serverImageUrls.join(','))
 
       selectedFiles.forEach((file) => {
         formData.append('images', file)
@@ -182,8 +261,8 @@ const CreatePost = () => {
       ) : (
         <div className='flex gap-4'>
           <div className='py-4 flex flex-col gap-8 flex-auto'>
-            <Address payload={payload} setPayload={setPayload} />
-            <Overview payload={payload} setPayload={setPayload} />
+            <Address payload={payload} setPayload={setPayload} invalidFields={invalidFields} setInvalidFields={setInvalidFields} />
+            <Overview payload={payload} setPayload={setPayload} invalidFields={invalidFields} setInvalidFields={setInvalidFields} />
             <div className='w-full mb-6'>
               <h2 className='font-semibold text-xl py-4'>Hình ảnh</h2>
               <small>
@@ -199,17 +278,20 @@ const CreatePost = () => {
                   </div>
                 </label>
                 <input onChange={handleFiles} hidden type='file' id='file' multiple accept='image/*' />
+                {invalidFields?.some(item => item.name === 'images') && (
+                  <small className='text-red-500 italic block my-2'>
+                    {invalidFields.find(item => item.name === 'images')?.message}
+                  </small>
+                )}
                 <div className='w-full'>
                   <h3 className='font-medium py-4'>Ảnh đang hiển thị</h3>
                   <div className='flex gap-4 items-center flex-wrap'>
                     {imagesPreview.map((item) => (
                       <div key={item.id} className='relative w-[180px] h-[180px]'>
                         <img src={item.url} alt={item.name} className='w-full h-full object-cover rounded-md' />
-                        {item.isLocal && (
-                          <span title='Xóa' onClick={() => handleDeleteImage(item.id)} className='absolute top-0 right-0 p-2 cursor-pointer bg-gray-300 hover:bg-gray-400 rounded-full'>
-                            <ImBin />
-                          </span>
-                        )}
+                        <span title='Xóa' onClick={() => handleDeleteImage(item.id)} className='absolute top-0 right-0 p-2 cursor-pointer bg-gray-300 hover:bg-gray-400 rounded-full'>
+                          <ImBin />
+                        </span>
                       </div>
                     ))}
                     {imagesPreview.length === 0 && <p className='text-sm text-gray-500'>Chưa có ảnh nào được chọn.</p>}
@@ -217,7 +299,12 @@ const CreatePost = () => {
                 </div>
               </div>
             </div>
-            <Button onClick={handleSubmit} text={isLoading ? (isEditMode ? 'Đang cập nhật...' : 'Đang tạo...') : (isEditMode ? 'Lưu cập nhật' : 'Tạo mới')} bgColor='bg-green-600' />
+            <div className='flex gap-4'>
+              <Button onClick={handleSubmit} text={isLoading ? (isEditMode ? 'Đang cập nhật...' : 'Đang tạo...') : (isEditMode ? 'Lưu cập nhật' : 'Tạo mới')} bgColor='bg-green-600' />
+              {isEditMode && (
+                <Button onClick={redirectToManagePosts} text='Hủy' bgColor='bg-gray-500' />
+              )}
+            </div>
             <div className='h-[500px]'></div>
           </div>
           <div className='w-[30%] flex-none'>

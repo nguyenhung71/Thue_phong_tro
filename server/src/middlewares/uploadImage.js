@@ -27,7 +27,7 @@ const uploadImage = multer({
     if (file.mimetype.startsWith('image/')) {
       cb(null, true)
     } else {
-      cb(new Error('Chỉ chấp nhận file ảnh!'), false)
+      cb(new Error('Định dạng file không hỗ trợ'), false)
     }
   }
 })

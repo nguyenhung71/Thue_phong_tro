@@ -19,7 +19,7 @@ const ForgotPassword = () => {
   const validateEmail = () => {
     const errors = [];
     if (!payload.email) errors.push({ name: "email", message: "Trường này không được để trống" });
-    else if (!/\S+@\S+\.\S+/.test(payload.email)) errors.push({ name: "email", message: "Email không hợp lệ" });
+    else if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(payload.email)) errors.push({ name: "email", message: "Email không hợp lệ" });
     setInvalidFields(errors);
     return errors.length;
   };

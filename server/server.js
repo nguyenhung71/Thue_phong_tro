@@ -17,6 +17,14 @@ app.use(express.urlencoded({ extended: true }))
 
 initRoutes(app)
 
+app.use((err, req, res, next) => {
+  console.error(err)
+  return res.status(err.status || 400).json({
+    err: 1,
+    msg: err.message || 'Định dạng file không hỗ trợ'
+  })
+})
+
 const port = process.env.PORT || 8888
 
 const startServer = async () => {

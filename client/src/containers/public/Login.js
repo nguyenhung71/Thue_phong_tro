@@ -85,7 +85,7 @@ const Login = () => {
     }
 
     if (isRegister) {
-      if (data.email && !/\S+@\S+\.\S+/.test(data.email)) {
+      if (data.email && !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(data.email)) {
         errors.push({ name: "email", message: "Email không hợp lệ" });
       }
 

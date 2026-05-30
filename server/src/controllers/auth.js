@@ -7,23 +7,23 @@ import { generateOtp, getOtpExpiry, isOtpValid } from "../utils/otpHelper";
 
 const getPasswordError = (password) => {
   if (password.length < 8) {
-    return "Mat khau phai co it nhat 8 ky tu";
+    return "Mật khẩu phải có ít nhất 8 ký tự";
   }
 
   if (!/[A-Z]/.test(password)) {
-    return "Mat khau phai co it nhat 1 chu hoa";
+    return "Mật khẩu phải có ít nhất 1 chữ hoa";
   }
 
   if (!/[a-z]/.test(password)) {
-    return "Mat khau phai co it nhat 1 chu thuong";
+    return "Mật khẩu phải có ít nhất 1 chữ cái thường";
   }
 
   if (!/\d/.test(password)) {
-    return "Mat khau phai co it nhat 1 so";
+    return "Mật khẩu phải có ít nhất 1 số";
   }
 
   if (!/[^A-Za-z\d]/.test(password)) {
-    return "Mat khau phai co it nhat 1 ky tu dac biet";
+    return "Mật khẩu phải có ít nhất 1 ký tự đặc biệt";
   }
 
   return "";
@@ -36,7 +36,7 @@ export const register = async (req, res) => {
     if (!name || !phone || !email || !password || !roleId) {
       return res.status(400).json({
         err: 1,
-        msg: "Truong nay khong duoc de trong",
+        msg: "Trường này không được để trống",
       });
     }
 
@@ -45,6 +45,14 @@ export const register = async (req, res) => {
       return res.status(400).json({
         err: 1,
         msg: passwordError,
+      });
+    }
+
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({
+        err: 1,
+        msg: "Email không hợp lệ",
       });
     }
 
@@ -65,7 +73,7 @@ export const login = async (req, res) => {
     if (!phone || !password) {
       return res.status(400).json({
         err: 1,
-        msg: "Truong nay khong duoc de trong",
+        msg: "Trường này không được để trống",
       });
     }
 
@@ -89,6 +97,14 @@ export const sendOtp = async (req, res) => {
     });
   }
 
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  if (!emailRegex.test(email)) {
+    return res.status(400).json({
+      err: 1,
+      msg: "Email không hợp lệ",
+    });
+  }
+
   try {
     const user = await sequelize.query(
       "SELECT id, email FROM Users WHERE email = ? LIMIT 1",
@@ -101,7 +117,7 @@ export const sendOtp = async (req, res) => {
     if (user.length === 0) {
       return res.status(200).json({
         err: 1,
-        msg: "Email khong ton tai",
+        msg: "Email không tồn tại.",
       });
     }
 
@@ -126,13 +142,13 @@ export const sendOtp = async (req, res) => {
 
     return res.status(200).json({
       err: 0,
-      msg: "OTP da duoc gui toi email cua ban",
+      msg: "OTP đã được gửi tới email của bạn",
     });
   } catch (error) {
     console.error("sendOtp error:", error);
     return res.status(500).json({
       err: -1,
-      msg: "Loi server, vui long thu lai sau",
+      msg: "Lỗi server, vui lòng thử lại sau",
     });
   }
 };
@@ -144,7 +160,7 @@ export const verifyOtp = async (req, res) => {
   if (!email || !otp) {
     return res.status(400).json({
       err: 1,
-      msg: "Email va OTP khong duoc de trong",
+      msg: "Email và OTP không được để trống",
     });
   }
 
@@ -164,7 +180,7 @@ export const verifyOtp = async (req, res) => {
     if (rows.length === 0) {
       return res.status(200).json({
         err: 1,
-        msg: "OTP khong chinh xac",
+        msg: "OTP không chính xác",
       });
     }
 
@@ -173,7 +189,7 @@ export const verifyOtp = async (req, res) => {
     if (!isOtpValid(record.expires_at)) {
       return res.status(200).json({
         err: 1,
-        msg: "OTP da het han, vui long yeu cau ma moi",
+        msg: "OTP đã hết hạn, vui lòng yêu cầu mã mới",
       });
     }
 
@@ -187,13 +203,13 @@ export const verifyOtp = async (req, res) => {
 
     return res.status(200).json({
       err: 0,
-      msg: "Xac thuc OTP thanh cong",
+      msg: "Xác thực OTP thành công",
     });
   } catch (error) {
     console.error("verifyOtp error:", error);
     return res.status(500).json({
       err: -1,
-      msg: "Loi server, vui long thu lai sau",
+      msg: "Lỗi server, vui lòng thử lại sau",
     });
   }
 };
@@ -206,14 +222,14 @@ export const resetPassword = async (req, res) => {
   if (!email || !otp || !newPassword || !confirmPassword) {
     return res.status(400).json({
       err: 1,
-      msg: "Vui long nhap day du thong tin",
+      msg: "Vui lòng nhập đầy đủ thông tin",
     });
   }
 
   if (newPassword !== confirmPassword) {
     return res.status(400).json({
       err: 1,
-      msg: "Mat khau xac nhan khong khop",
+      msg: "Mật khẩu xác nhận không khớp",
     });
   }
 
@@ -250,7 +266,7 @@ export const resetPassword = async (req, res) => {
     if (!isOtpValid(record.expires_at)) {
       return res.status(200).json({
         err: 1,
-        msg: "OTP da het han, vui long yeu cau ma moi",
+        msg: "OTP đã hết hạn, vui lòng yêu cầu mã mới",
       });
     }
 
@@ -274,7 +290,7 @@ export const resetPassword = async (req, res) => {
     console.error("resetPassword error:", error);
     return res.status(500).json({
       err: -1,
-      msg: "Loi server, vui long thu lai sau",
+      msg: "Lỗi server, vui lòng thử lại sau",
     });
   }
 };

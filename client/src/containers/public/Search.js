@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
-import { createSearchParams, useLocation, useSearchParams } from 'react-router-dom'
+import { createSearchParams, useLocation, useNavigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import { Modal, SearchItem } from '../../components'
 import icons from '../../ultils/icons'
@@ -9,7 +9,7 @@ const { BsChevronRight, FiSearch, HiOutlineLocationMarker, MdOutlineHouseSiding,
 
 const Search = () => {
   const location = useLocation()
-  const [searchParams] = useSearchParams()
+  const navigate = useNavigate()
   const [isShowModal, setIsShowModal] = useState(false)
   const [content, setContent] = useState([])
   const [name, setName] = useState('')
@@ -21,22 +21,6 @@ const Search = () => {
   const currentCategoryLabel = useMemo(() => {
     return categories.find((item) => String(item.id) === String(queries.categoryId || '') || item.legacyCode === queries.categoryCode)?.value
   }, [categories, queries.categoryCode, queries.categoryId])
-
-  useEffect(() => {
-    const nextQueries = {
-      category: searchParams.get('category') || '',
-      categoryId: searchParams.get('categoryId') || '',
-      categoryCode: searchParams.get('categoryCode') || '',
-      province: searchParams.get('province') || '',
-      price: searchParams.get('price') || '',
-      area: searchParams.get('area') || '',
-      priceMin: searchParams.get('priceMin') || '',
-      priceMax: searchParams.get('priceMax') || '',
-      acreageMin: searchParams.get('acreageMin') || '',
-      acreageMax: searchParams.get('acreageMax') || '',
-    }
-    setQueries((prev) => ({ ...prev, ...nextQueries }))
-  }, [searchParams])
 
   useEffect(() => {
     if (!location.pathname.includes(path.SEARCH)) {
@@ -68,7 +52,9 @@ const Search = () => {
     nextParams.page = 1
     nextParams.titleSearch = `${currentCategoryLabel || 'Cho thuê tất cả'}${queries.province ? ` tại ${queries.province}` : ''}${queries.price ? ` ${queries.price}` : ''}${queries.area ? ` ${queries.area}` : ''}`.trim()
 
-    window.location.assign(`/${path.SEARCH}?${createSearchParams(nextParams).toString()}`)
+    navigate(`/${path.SEARCH}?${createSearchParams(nextParams).toString()}`)
+    setQueries({})
+    setArrMinMax({})
   }
 
   return (

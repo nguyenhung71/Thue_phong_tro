@@ -2,7 +2,7 @@ import bcrypt from 'bcryptjs'
 import db from '../models'
 
 const DEFAULT_ADMIN = {
-  id: '00000000-0000-0000-0000-000000000001',
+  id: '00000-00001',
   name: 'Administrator',
   email: 'admin@gmail.com',
   phone: '19006789',
