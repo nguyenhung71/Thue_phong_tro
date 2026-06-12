@@ -1,30 +1,7 @@
-import React, { memo, useEffect, useState } from 'react'
+import React, { memo } from 'react'
 import { InputReadOnly } from '../components'
 
 const Address = ({ payload, setPayload, invalidFields, setInvalidFields }) => {
-  const [streetAddress, setStreetAddress] = useState(payload.address || '')
-  const [province, setProvince] = useState(payload.province || '')
-
-  useEffect(() => {
-    if (payload.address !== undefined && payload.address !== streetAddress) {
-      setStreetAddress(payload.address)
-    }
-  }, [payload.address, streetAddress])
-
-  useEffect(() => {
-    if (payload.province !== undefined && payload.province !== province) {
-      setProvince(payload.province)
-    }
-  }, [payload.province, province])
-
-  useEffect(() => {
-    setPayload((prev) => ({
-      ...prev,
-      address: streetAddress,
-      province,
-    }))
-  }, [province, setPayload, streetAddress])
-
   return (
     <div>
       <h2 className='font-semibold text-xl py-4'>Địa chỉ cho thuê</h2>
@@ -35,9 +12,9 @@ const Address = ({ payload, setPayload, invalidFields, setInvalidFields }) => {
             id='street-address'
             type='text'
             className='outline-none border border-gray-300 p-2 rounded-md w-full'
-            value={streetAddress}
+            value={payload.address || ''}
             onChange={(e) => {
-              setStreetAddress(e.target.value)
+              setPayload(prev => ({ ...prev, address: e.target.value }))
               if (invalidFields?.some(item => item.name === 'address')) {
                 setInvalidFields(prev => prev.filter(item => item.name !== 'address'))
               }
@@ -61,9 +38,9 @@ const Address = ({ payload, setPayload, invalidFields, setInvalidFields }) => {
             id='province'
             type='text'
             className='outline-none border border-gray-300 p-2 rounded-md w-full'
-            value={province}
+            value={payload.province || ''}
             onChange={(e) => {
-              setProvince(e.target.value)
+              setPayload(prev => ({ ...prev, province: e.target.value }))
               if (invalidFields?.some(item => item.name === 'province')) {
                 setInvalidFields(prev => prev.filter(item => item.name !== 'province'))
               }
@@ -81,7 +58,7 @@ const Address = ({ payload, setPayload, invalidFields, setInvalidFields }) => {
             </small>
           )}
         </div>
-        <InputReadOnly label='Địa chỉ hiển thị' value={[streetAddress, province].filter(Boolean).join(', ')} />
+        <InputReadOnly label='Địa chỉ hiển thị' value={[payload.address, payload.province].filter(Boolean).join(', ')} />
       </div>
     </div>
   )
